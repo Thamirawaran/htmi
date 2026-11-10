@@ -1,0 +1,22 @@
+name: htmi
+version: "0.1.0"
+description: >-
+  Review HTML and Markdown documents with your agent: comment on the exact element,
+  passage, diagram part or image region you see; Hermes is told, reads the comment with
+  the context it needs, makes checked edits and replies.
+author: Thamirawaran
+homepage: https://github.com/Thamirawaran/htmi
+manifest_version: 2
+requires_hermes: ">=0.23.0"
+provides_tools:
+  - htmi_list_documents
+  - htmi_read_document
+  - htmi_list_targets
+  - htmi_list_comments
+  - htmi_comment_context
+  - htmi_apply_edit
+  - htmi_reply
+  - htmi_validate
+  - htmi_open_review
+provides_hooks:
+  - pre_llm_call

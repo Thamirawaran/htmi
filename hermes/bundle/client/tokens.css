@@ -1,0 +1,94 @@
+/*
+ * HTMi design tokens for the review surface.
+ *
+ * One meaning per token. Status colours describe discussion state; target
+ * colours describe whether a comment is still attached to what it was
+ * written about. They are separate on purpose, as in the data model.
+ */
+:root {
+  color-scheme: light dark;
+
+  /* Surfaces and text */
+  --hm-bg: #ffffff;
+  --hm-surface: #f6f7f9;
+  --hm-surface-raised: #ffffff;
+  --hm-border: #d6dae1;
+  --hm-border-strong: #aab2be;
+  --hm-text: #1b1f24;
+  --hm-text-muted: #59636f;
+  --hm-focus: #2457c5;
+
+  /* Selection: the target the composer will attach a comment to */
+  --hm-select: #2457c5;
+  --hm-select-weak: #e4ebfb;
+
+  /* Discussion status */
+  --hm-status-open: #b5470b;
+  --hm-status-acknowledged: #8a5a00;
+  --hm-status-addressed: #6b33c9;
+  --hm-status-resolved: #18794e;
+  --hm-status-wontfix: #5f6670;
+
+  /* Target resolution */
+  --hm-target-changed: #a16207;
+  --hm-target-lost: #b42318;
+
+  /* Diagram */
+  --hm-node-fill: #ffffff;
+  --hm-node-stroke: #4a5361;
+  --hm-edge: #69727f;
+  --hm-group-fill: #f2f4f7;
+  --hm-group-stroke: #c3c9d2;
+  --hm-quote: rgba(234, 179, 8, 0.35);
+
+  /* Type */
+  --hm-font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --hm-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  --hm-text-sm: 13px;
+  --hm-text-md: 15px;
+  --hm-text-lg: 18px;
+
+  /* Space and shape */
+  --hm-space-1: 4px;
+  --hm-space-2: 8px;
+  --hm-space-3: 12px;
+  --hm-space-4: 16px;
+  --hm-space-5: 24px;
+  --hm-radius: 8px;
+  --hm-radius-small: 4px;
+  --hm-shadow: 0 1px 2px rgba(16, 24, 40, 0.08), 0 4px 12px rgba(16, 24, 40, 0.08);
+  --hm-touch: 44px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --hm-bg: #111418;
+    --hm-surface: #181c22;
+    --hm-surface-raised: #1f242b;
+    --hm-border: #323943;
+    --hm-border-strong: #4a5360;
+    --hm-text: #e7eaee;
+    --hm-text-muted: #a2abb7;
+    --hm-focus: #7aa2ff;
+
+    --hm-select: #7aa2ff;
+    --hm-select-weak: #1d2a47;
+
+    --hm-status-open: #f0883e;
+    --hm-status-acknowledged: #d8a73a;
+    --hm-status-addressed: #b392f0;
+    --hm-status-resolved: #4cc38a;
+    --hm-status-wontfix: #8b949e;
+
+    --hm-target-changed: #e3b341;
+    --hm-target-lost: #ff7b72;
+
+    --hm-node-fill: #1b2028;
+    --hm-node-stroke: #9aa4b2;
+    --hm-edge: #8b95a3;
+    --hm-group-fill: #161a20;
+    --hm-group-stroke: #3a424d;
+    --hm-quote: rgba(234, 179, 8, 0.3);
+    --hm-shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 4px 12px rgba(0, 0, 0, 0.35);
+  }
+}

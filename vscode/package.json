@@ -1,0 +1,63 @@
+{
+  "name": "htmi-vscode",
+  "displayName": "HTMi",
+  "description": "Review HTML and Markdown documents beside their source, and hand pinned feedback to your coding agent.",
+  "version": "0.1.0",
+  "private": true,
+  "publisher": "thamirawaran",
+  "license": "UNLICENSED",
+  "engines": {
+    "vscode": "^1.95.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "main": "./dist/extension.cjs",
+  "activationEvents": [
+    "onLanguage:html",
+    "onLanguage:markdown"
+  ],
+  "contributes": {
+    "commands": [
+      {
+        "command": "htmi.openReview",
+        "title": "Open review beside",
+        "category": "HTMi",
+        "icon": "$(comment-discussion)"
+      },
+      {
+        "command": "htmi.applyOperation",
+        "title": "Apply checked operation",
+        "category": "HTMi"
+      }
+    ],
+    "menus": {
+      "editor/title": [
+        {
+          "command": "htmi.openReview",
+          "when": "resourceScheme == file && (resourceLangId == html || resourceLangId == markdown)",
+          "group": "navigation"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "htmi.openReview",
+          "when": "editorLangId == html || editorLangId == markdown"
+        },
+        {
+          "command": "htmi.applyOperation",
+          "when": "editorLangId == html || editorLangId == markdown"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "package": "npm run build && node scripts/package.mjs"
+  },
+  "devDependencies": {
+    "@types/vscode": "1.95.0",
+    "esbuild": "0.25.12"
+  }
+}

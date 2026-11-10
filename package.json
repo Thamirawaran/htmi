@@ -1,0 +1,54 @@
+{
+  "name": "htmi",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Review diagrams and technical documents in the tools you already use, and hand pinned, revision-aware feedback to your coding agent.",
+  "license": "UNLICENSED",
+  "type": "module",
+  "bin": {
+    "htmi": "dist/cli/main.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=20.11"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json && node scripts/copy-client.mjs",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "check": "npm run typecheck && npm test",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "bundle:engine": "node scripts/bundle-engine.mjs hermes/bundle",
+    "build:chrome": "cd chrome && npm install --prefer-offline --no-audit --fund=false && npm run build"
+  },
+  "dependencies": {
+    "@dagrejs/dagre": "1.1.8",
+    "@modelcontextprotocol/sdk": "1.32.2",
+    "entities": "8.1.0",
+    "marked": "16.4.2",
+    "parse5": "8.0.1",
+    "postcss": "8.5.32",
+    "sanitize-html": "2.18.1",
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "@types/node": "20.19.25",
+    "@types/sanitize-html": "2.16.0",
+    "esbuild": "0.25.12",
+    "lucide-static": "1.64.0",
+    "prettier": "3.6.2",
+    "typescript": "5.9.3",
+    "vitest": "4.1.12"
+  },
+  "peerDependencies": {
+    "lucide-static": ">=1.0.0"
+  },
+  "peerDependenciesMeta": {
+    "lucide-static": {
+      "optional": true
+    }
+  }
+}

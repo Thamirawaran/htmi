@@ -1,0 +1,837 @@
+/* Review page layout and components. Values come from tokens.css. */
+/* Authored HTML (inside .hm-authored) keeps its own styles: shell rules for plain elements skip it. */
+:where(:not(.hm-authored, .hm-authored *)),
+:where(:not(.hm-authored, .hm-authored *))::before,
+:where(:not(.hm-authored, .hm-authored *))::after {
+  box-sizing: border-box;
+}
+html {
+  -webkit-text-size-adjust: 100%;
+}
+body {
+  margin: 0;
+  background: var(--hm-bg);
+  color: var(--hm-text);
+  font: var(--hm-text-md) / 1.55 var(--hm-font);
+}
+code:where(:not(.hm-authored *)),
+pre:where(:not(.hm-authored *)) {
+  font-family: var(--hm-mono);
+  font-size: 0.9em;
+}
+pre:where(:not(.hm-authored *)) {
+  overflow-x: auto;
+  padding: var(--hm-space-3);
+  background: var(--hm-surface);
+  border-radius: var(--hm-radius-small);
+}
+a:where(:not(.hm-authored *)) {
+  color: var(--hm-select);
+}
+button:where(:not(.hm-authored *)),
+select:where(:not(.hm-authored *)),
+textarea:where(:not(.hm-authored *)) {
+  font: inherit;
+  color: inherit;
+}
+:focus-visible {
+  outline: 2px solid var(--hm-focus);
+  outline-offset: 2px;
+}
+[hidden] {
+  display: none !important;
+}
+/* Carries the client bootstrap; it must load (and fail) but never show. */
+.hm-boot {
+  position: absolute;
+  width: 0;
+  height: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.hm-skip {
+  position: absolute;
+  left: -9999px;
+}
+.hm-skip:focus {
+  left: var(--hm-space-2);
+  top: var(--hm-space-2);
+  z-index: 20;
+  background: var(--hm-surface-raised);
+  padding: var(--hm-space-2);
+}
+
+/* Header */
+.hm-bar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--hm-space-2) var(--hm-space-4);
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--hm-space-2) var(--hm-space-4);
+  background: var(--hm-surface);
+  border-bottom: 1px solid var(--hm-border);
+}
+.hm-bar-main {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--hm-space-1) var(--hm-space-3);
+  align-items: baseline;
+  min-width: 0;
+}
+.hm-title {
+  font-weight: 600;
+}
+.hm-meta,
+.hm-mode {
+  color: var(--hm-text-muted);
+  font-size: var(--hm-text-sm);
+}
+.hm-mode {
+  padding: 2px var(--hm-space-2);
+  border: 1px solid var(--hm-border);
+  border-radius: 999px;
+}
+.hm-mode[data-mode="live"] {
+  border-color: var(--hm-status-resolved);
+  color: var(--hm-status-resolved);
+}
+.hm-banner {
+  padding: var(--hm-space-2) var(--hm-space-4);
+  background: var(--hm-select-weak);
+  border-bottom: 1px solid var(--hm-border);
+  display: flex;
+  gap: var(--hm-space-3);
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+/* Layout */
+.hm-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 400px);
+  align-items: start;
+}
+.hm-doc {
+  position: relative;
+  min-width: 0;
+  padding: var(--hm-space-5) var(--hm-space-5) 120px;
+  max-width: 980px;
+  width: 100%;
+  justify-self: center;
+}
+.hm-doc:not(.hm-html) img {
+  max-width: 100%;
+  max-height: 420px;
+  width: auto;
+  height: auto;
+}
+.hm-doc:not(.hm-html) img.hm-unsized {
+  width: min(100%, 640px);
+}
+.hm-doc blockquote.hm-alert {
+  color: var(--hm-text);
+  border-left-color: var(--hm-select);
+}
+.hm-doc blockquote.hm-alert[data-alert="important"] {
+  border-left-color: var(--hm-status-addressed);
+}
+.hm-doc blockquote.hm-alert[data-alert="warning"],
+.hm-doc blockquote.hm-alert[data-alert="caution"] {
+  border-left-color: var(--hm-target-lost);
+}
+.hm-alert-title {
+  font-weight: 600;
+  margin-bottom: 0;
+}
+.hm-alert-title + p {
+  margin-top: 2px;
+}
+.hm-doc:not(.hm-html) table {
+  border-collapse: collapse;
+  display: block;
+  overflow-x: auto;
+}
+.hm-doc:not(.hm-html) th,
+.hm-doc:not(.hm-html) td {
+  border: 1px solid var(--hm-border);
+  padding: var(--hm-space-1) var(--hm-space-2);
+}
+.hm-doc:not(.hm-html) blockquote {
+  margin: 0;
+  padding-left: var(--hm-space-3);
+  border-left: 3px solid var(--hm-border-strong);
+  color: var(--hm-text-muted);
+}
+/* HTML documents: the authored page fills the column and starts from browser defaults, as when opened directly. */
+.hm-doc.hm-html {
+  max-width: none;
+  padding: 0 0 120px;
+}
+.hm-authored-frame {
+  all: initial;
+  display: block;
+  /* Fixed or oversized authored elements stay inside the document column. */
+  contain: paint;
+  overflow-x: auto;
+}
+:where(.hm-authored) {
+  display: block;
+  color-scheme: light;
+  color: CanvasText;
+  background: Canvas;
+}
+:where(.hm-authored-body) {
+  display: block;
+  margin: 8px;
+}
+.hm-authored [data-hm-key]:hover {
+  outline: 1px dashed var(--hm-select);
+  outline-offset: 2px;
+}
+.hm-authored svg [data-hm-key]:hover {
+  outline: none;
+  filter: drop-shadow(0 0 1.5px var(--hm-select));
+}
+.hm-authored [data-hm-key].hm-selected {
+  outline: 2px solid var(--hm-select);
+  outline-offset: 2px;
+}
+.hm-authored svg [data-hm-key].hm-selected {
+  outline: none;
+  filter: drop-shadow(0 0 2.5px var(--hm-select)) drop-shadow(0 0 1px var(--hm-select));
+}
+.hm-heading {
+  scroll-margin-top: 64px;
+}
+.hm-panel {
+  position: sticky;
+  top: 49px;
+  height: calc(100vh - 49px);
+  overflow-y: auto;
+  border-left: 1px solid var(--hm-border);
+  background: var(--hm-surface);
+  padding: var(--hm-space-4);
+}
+.hm-panel:focus {
+  outline: none;
+}
+.hm-missing {
+  color: var(--hm-target-lost);
+}
+
+/* Figures */
+.hm-figure {
+  margin: var(--hm-space-5) 0;
+  border: 1px solid var(--hm-border);
+  border-radius: var(--hm-radius);
+  background: var(--hm-bg);
+}
+.hm-figure-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--hm-space-2);
+  padding: var(--hm-space-1) var(--hm-space-2) var(--hm-space-1) var(--hm-space-3);
+  border-bottom: 1px solid var(--hm-border);
+  font-size: var(--hm-text-sm);
+  color: var(--hm-text-muted);
+}
+.hm-figure-id {
+  font-family: var(--hm-mono);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.hm-figure-canvas {
+  overflow-x: auto;
+  padding: var(--hm-space-2);
+}
+.hm-figure-canvas svg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 0 auto;
+}
+.hm-figure.hm-wide .hm-figure-canvas svg {
+  max-width: none;
+}
+.hm-figure.hm-unsupported {
+  padding: var(--hm-space-3);
+}
+.hm-figure figcaption {
+  font-size: var(--hm-text-sm);
+  color: var(--hm-text-muted);
+}
+.hm-textview {
+  border-top: 1px solid var(--hm-border);
+  padding: var(--hm-space-2) var(--hm-space-3);
+  font-size: var(--hm-text-sm);
+}
+.hm-textview summary {
+  cursor: pointer;
+  color: var(--hm-text-muted);
+  min-height: 28px;
+}
+.hm-textview table {
+  margin: var(--hm-space-2) 0;
+  font-size: var(--hm-text-sm);
+}
+.hm-textview caption {
+  text-align: left;
+  font-weight: 600;
+  padding: var(--hm-space-1) 0;
+}
+
+/* Diagram drawing */
+.hm-diagram-bg {
+  fill: transparent;
+}
+.hm-diagram text {
+  font-family: var(--hm-font);
+  fill: var(--hm-text);
+}
+.hm-node-label {
+  font-size: 14px;
+}
+.hm-node-shape {
+  fill: var(--hm-node-fill);
+  stroke: var(--hm-node-stroke);
+  stroke-width: 1.5;
+}
+.hm-node-detail {
+  fill: none;
+  stroke: var(--hm-node-stroke);
+  stroke-width: 1.5;
+}
+.hm-icon {
+  color: var(--hm-text-muted);
+}
+.hm-edge-line {
+  fill: none;
+  stroke: var(--hm-edge);
+  stroke-width: 1.6;
+}
+.hm-line-dotted {
+  stroke-dasharray: 5 4;
+}
+.hm-line-thick {
+  stroke-width: 3;
+}
+.hm-edge-hit {
+  fill: none;
+  stroke: transparent;
+  stroke-width: 16;
+  pointer-events: stroke;
+}
+.hm-marker {
+  fill: var(--hm-edge);
+}
+.hm-marker-open {
+  fill: var(--hm-bg);
+  stroke: var(--hm-edge);
+  stroke-width: 1.5;
+}
+.hm-marker-stroke {
+  stroke: var(--hm-edge);
+  stroke-width: 1.8;
+}
+.hm-edge-label rect {
+  fill: var(--hm-bg);
+  opacity: 0.92;
+}
+.hm-edge-label text {
+  font-size: 12px;
+  fill: var(--hm-text-muted);
+}
+.hm-group-box {
+  fill: var(--hm-group-fill);
+  stroke: var(--hm-group-stroke);
+  stroke-width: 1.2;
+}
+.hm-group-title {
+  font-size: 12px;
+  font-weight: 600;
+  fill: var(--hm-text-muted);
+}
+.hm-target {
+  cursor: pointer;
+}
+.hm-target:focus {
+  outline: none;
+}
+.hm-node:hover .hm-node-shape,
+.hm-node:focus-visible .hm-node-shape {
+  stroke: var(--hm-select);
+}
+.hm-node:focus-visible .hm-node-shape,
+.hm-group:focus-visible .hm-group-box {
+  stroke-width: 3;
+}
+.hm-edge:hover .hm-edge-line,
+.hm-edge:focus-visible .hm-edge-line {
+  stroke: var(--hm-select);
+  stroke-width: 2.6;
+}
+.hm-group:hover .hm-group-box {
+  stroke: var(--hm-select);
+}
+.hm-selected.hm-node .hm-node-shape {
+  stroke: var(--hm-select);
+  stroke-width: 3;
+  fill: var(--hm-select-weak);
+}
+.hm-selected.hm-edge .hm-edge-line {
+  stroke: var(--hm-select);
+  stroke-width: 3.2;
+}
+.hm-selected.hm-group .hm-group-box {
+  stroke: var(--hm-select);
+  stroke-width: 2.5;
+}
+.hm-figure.hm-selected {
+  border-color: var(--hm-select);
+  box-shadow: 0 0 0 2px var(--hm-select-weak);
+}
+img.hm-target.hm-selected {
+  outline: 3px solid var(--hm-select);
+  outline-offset: 2px;
+}
+.hm-flash {
+  animation: hm-flash 1.2s ease-out;
+}
+@keyframes hm-flash {
+  0% {
+    filter: drop-shadow(0 0 0 var(--hm-select));
+  }
+  30% {
+    filter: drop-shadow(0 0 6px var(--hm-select));
+  }
+  100% {
+    filter: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hm-flash {
+    animation: none;
+  }
+}
+::highlight(hm-quotes) {
+  background-color: var(--hm-quote);
+}
+::highlight(hm-quote-selected) {
+  background-color: var(--hm-select-weak);
+  text-decoration: underline 2px var(--hm-select);
+}
+
+/* Pins */
+.hm-pins {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+}
+.hm-pin {
+  position: absolute;
+  pointer-events: auto;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  transform: translate(-50%, -50%);
+  border-radius: 11px;
+  border: 2px solid var(--hm-bg);
+  background: var(--hm-status-open);
+  color: #fff;
+  font: 600 12px/18px var(--hm-font);
+  cursor: pointer;
+  box-shadow: var(--hm-shadow);
+}
+.hm-pin::after {
+  content: "";
+  position: absolute;
+  inset: -11px;
+}
+.hm-pin[data-status="addressed"] {
+  background: var(--hm-status-addressed);
+}
+.hm-pin[data-status="acknowledged"] {
+  background: var(--hm-status-acknowledged);
+}
+.hm-pin[data-status="resolved"],
+.hm-pin[data-status="wontfix"] {
+  background: var(--hm-status-resolved);
+}
+.hm-pin[data-target="changed"] {
+  border-style: dashed;
+  border-color: var(--hm-target-changed);
+}
+
+/* Image regions: a rectangle drawn while marking, and outlines of saved ones. */
+.hm-region-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 3;
+}
+.hm-region-draw {
+  position: absolute;
+  pointer-events: auto;
+  cursor: crosshair;
+  touch-action: none;
+  background: rgb(0 0 0 / 0.18);
+  outline: 2px dashed var(--hm-select);
+  outline-offset: 0;
+}
+.hm-region-draw:focus-visible {
+  outline-style: solid;
+}
+.hm-region-box,
+.hm-region-mark {
+  position: absolute;
+  border: 2px solid var(--hm-select);
+  background: var(--hm-select-weak);
+  box-sizing: border-box;
+}
+.hm-region-box {
+  box-shadow: 0 0 0 1px var(--hm-bg);
+}
+.hm-region-mark {
+  pointer-events: none;
+  background: transparent;
+  box-shadow:
+    0 0 0 1px var(--hm-bg),
+    inset 0 0 0 1px var(--hm-bg);
+}
+.hm-region-mark[data-target="changed"] {
+  border-style: dashed;
+  border-color: var(--hm-target-changed);
+}
+.hm-region-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--hm-space-2);
+  margin-top: var(--hm-space-2);
+}
+.hm-region-note {
+  flex-basis: 100%;
+  margin: 0;
+  font-size: var(--hm-text-sm);
+  color: var(--hm-text-muted);
+}
+
+/* Panel */
+.hm-panel h2 {
+  font-size: var(--hm-text-lg);
+  margin: 0 0 var(--hm-space-3);
+}
+.hm-panel h3 {
+  font-size: var(--hm-text-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--hm-text-muted);
+  margin: var(--hm-space-4) 0 var(--hm-space-2);
+}
+.hm-target-card {
+  background: var(--hm-surface-raised);
+  border: 1px solid var(--hm-border);
+  border-left: 4px solid var(--hm-select);
+  border-radius: var(--hm-radius);
+  padding: var(--hm-space-3);
+  margin-bottom: var(--hm-space-3);
+}
+.hm-target-card .hm-kind {
+  font-size: var(--hm-text-sm);
+  color: var(--hm-text-muted);
+}
+.hm-target-card .hm-label {
+  font-weight: 600;
+  word-break: break-word;
+}
+.hm-target-card code {
+  font-size: 12px;
+  color: var(--hm-text-muted);
+  word-break: break-all;
+}
+.hm-thread {
+  background: var(--hm-surface-raised);
+  border: 1px solid var(--hm-border);
+  border-radius: var(--hm-radius);
+  padding: var(--hm-space-3);
+  margin-bottom: var(--hm-space-2);
+}
+.hm-thread-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--hm-space-1) var(--hm-space-2);
+  align-items: center;
+  font-size: var(--hm-text-sm);
+  color: var(--hm-text-muted);
+}
+.hm-thread-text {
+  white-space: pre-wrap;
+  word-break: break-word;
+  margin: var(--hm-space-2) 0;
+}
+.hm-thread-target {
+  font-size: var(--hm-text-sm);
+  color: var(--hm-text-muted);
+  word-break: break-word;
+}
+.hm-thread button.hm-link {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--hm-select);
+  cursor: pointer;
+  text-align: left;
+  min-height: 24px;
+}
+.hm-reply {
+  border-left: 2px solid var(--hm-border);
+  padding-left: var(--hm-space-2);
+  margin: var(--hm-space-2) 0 0;
+  font-size: var(--hm-text-sm);
+}
+.hm-reply .hm-thread-text {
+  margin: var(--hm-space-1) 0 0;
+}
+.hm-chip {
+  display: inline-block;
+  padding: 0 var(--hm-space-2);
+  border-radius: 999px;
+  border: 1px solid currentColor;
+  font-size: 12px;
+  line-height: 20px;
+  white-space: nowrap;
+}
+.hm-chip[data-status="open"] {
+  color: var(--hm-status-open);
+}
+.hm-chip[data-status="acknowledged"] {
+  color: var(--hm-status-acknowledged);
+}
+.hm-chip[data-status="addressed"] {
+  color: var(--hm-status-addressed);
+}
+.hm-chip[data-status="resolved"] {
+  color: var(--hm-status-resolved);
+}
+.hm-chip[data-status="wontfix"] {
+  color: var(--hm-status-wontfix);
+}
+.hm-chip[data-target="changed"],
+.hm-chip[data-target="heuristic"] {
+  color: var(--hm-target-changed);
+}
+.hm-chip[data-target="ambiguous"],
+.hm-chip[data-target="orphaned"],
+.hm-chip[data-target="snapshot-only"] {
+  color: var(--hm-target-lost);
+}
+.hm-note {
+  font-size: var(--hm-text-sm);
+  color: var(--hm-text-muted);
+}
+.hm-empty {
+  color: var(--hm-text-muted);
+  font-size: var(--hm-text-sm);
+}
+
+/* Composer */
+.hm-composer {
+  display: grid;
+  gap: var(--hm-space-2);
+  margin-top: var(--hm-space-3);
+}
+.hm-composer label {
+  font-size: var(--hm-text-sm);
+  color: var(--hm-text-muted);
+}
+.hm-composer select,
+.hm-composer textarea,
+.hm-copybox {
+  width: 100%;
+  background: var(--hm-bg);
+  border: 1px solid var(--hm-border-strong);
+  border-radius: var(--hm-radius-small);
+  padding: var(--hm-space-2);
+}
+.hm-composer textarea {
+  min-height: 110px;
+  resize: vertical;
+}
+.hm-copybox {
+  min-height: 160px;
+  font-family: var(--hm-mono);
+  font-size: 12px;
+}
+.hm-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--hm-space-2);
+  align-items: center;
+}
+.hm-btn {
+  min-height: 36px;
+  padding: 0 var(--hm-space-3);
+  border-radius: var(--hm-radius-small);
+  border: 1px solid var(--hm-border-strong);
+  background: var(--hm-surface-raised);
+  cursor: pointer;
+}
+.hm-btn:hover {
+  border-color: var(--hm-select);
+}
+.hm-btn-primary {
+  background: var(--hm-select);
+  border-color: var(--hm-select);
+  color: var(--hm-bg);
+  font-weight: 600;
+}
+.hm-btn-small {
+  min-height: 28px;
+  font-size: var(--hm-text-sm);
+}
+.hm-btn[disabled] {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.hm-draft-state {
+  font-size: var(--hm-text-sm);
+  color: var(--hm-text-muted);
+}
+.hm-draft-state[data-state="error"] {
+  color: var(--hm-target-lost);
+}
+.hm-draft-state[data-state="saved"] {
+  color: var(--hm-status-resolved);
+}
+.hm-selection-button {
+  position: absolute;
+  z-index: 15;
+  transform: translate(-50%, -100%);
+  box-shadow: var(--hm-shadow);
+}
+.hm-tabs {
+  display: flex;
+  gap: var(--hm-space-1);
+  margin-bottom: var(--hm-space-3);
+}
+.hm-tabs button[aria-pressed="true"] {
+  border-color: var(--hm-select);
+  color: var(--hm-select);
+  font-weight: 600;
+}
+.hm-coverage {
+  font-size: var(--hm-text-sm);
+  color: var(--hm-text-muted);
+  overflow-wrap: anywhere;
+}
+.hm-live {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+
+/* Narrow screens: the panel becomes a sheet at the bottom. */
+@media (max-width: 900px) {
+  .hm-layout {
+    display: block;
+  }
+  .hm-doc {
+    padding: var(--hm-space-4) var(--hm-space-4) 55vh;
+  }
+  .hm-panel {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    top: auto;
+    height: auto;
+    max-height: 50vh;
+    border-left: none;
+    border-top: 1px solid var(--hm-border-strong);
+    box-shadow: var(--hm-shadow);
+    z-index: 12;
+  }
+  .hm-btn {
+    min-height: var(--hm-touch);
+  }
+}
+.hm-picker-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--hm-space-1);
+  margin: var(--hm-space-4) 0;
+}
+.hm-picker-row label {
+  font-size: var(--hm-text-sm);
+  color: var(--hm-text-muted);
+}
+.hm-picker {
+  width: 100%;
+  min-width: 0;
+  padding: var(--hm-space-1) var(--hm-space-2);
+  border: 1px solid var(--hm-border);
+  border-radius: var(--hm-radius-small);
+  background: var(--hm-bg);
+}
+.hm-source-line {
+  margin-top: var(--hm-space-1);
+  font: var(--hm-text-sm) var(--hm-mono);
+  color: var(--hm-text-muted);
+  overflow-wrap: anywhere;
+}
+.hm-original {
+  margin-left: auto;
+  font-size: var(--hm-text-sm);
+  white-space: nowrap;
+}
+
+/* Embedded in a host page's own layout (the browser extension on github.com): the page as
+   authored at full width, no header, and the comment panel as a card beside the selection.
+   The host sizes its frame to the page, so nothing scrolls inside it. */
+.hm-embed .hm-bar,
+.hm-embed .hm-skip {
+  display: none;
+}
+html:has(> body.hm-embed),
+body.hm-embed {
+  height: auto;
+  min-height: 0;
+  overflow: hidden;
+}
+.hm-embed .hm-layout {
+  display: block;
+  position: relative;
+}
+.hm-embed .hm-doc {
+  max-width: none;
+  padding: var(--hm-space-4) var(--hm-space-4) var(--hm-space-5);
+}
+.hm-embed .hm-panel {
+  display: none;
+  position: absolute;
+  top: 8px;
+  right: var(--hm-space-3);
+  left: auto;
+  bottom: auto;
+  width: min(380px, calc(100% - 24px));
+  height: auto;
+  max-height: none;
+  overflow: visible;
+  border: 1px solid var(--hm-border-strong);
+  border-radius: var(--hm-radius);
+  box-shadow: var(--hm-shadow);
+  z-index: 20;
+}
+.hm-embed.hm-panel-open .hm-panel {
+  display: block;
+}

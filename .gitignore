@@ -1,0 +1,10 @@
+node_modules/
+/dist/
+chrome/dist/
+vscode/dist/
+test-results/
+.htmi-tmp/
+*.log
+.DS_Store
+.pytest_cache/
+__pycache__/

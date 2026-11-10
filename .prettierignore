@@ -1,0 +1,8 @@
+dist
+node_modules
+examples
+test-results
+chrome/dist
+chrome/src/generated
+vscode/dist
+hermes/bundle/

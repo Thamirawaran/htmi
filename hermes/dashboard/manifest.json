@@ -1,0 +1,10 @@
+{
+  "name": "htmi",
+  "label": "Review",
+  "description": "HTMi review pages: read a document as authored and comment on what you see",
+  "icon": "MessageSquare",
+  "version": "0.1.0",
+  "tab": { "path": "/htmi", "position": "end" },
+  "entry": "dist/index.js",
+  "api": "plugin_api.py"
+}

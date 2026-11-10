@@ -1,0 +1,15 @@
+{
+  "name": "htmi-chrome",
+  "private": true,
+  "version": "0.1.0",
+  "description": "HTMi on github.com: review HTML files and issue and pull request descriptions as authored pages, and hand comments to GitHub's comment box.",
+  "license": "UNLICENSED",
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "devDependencies": {
+    "esbuild": "0.25.12"
+  }
+}
