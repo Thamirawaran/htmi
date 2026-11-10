@@ -23,6 +23,8 @@ _HANDLERS = {
     "htmi_apply_edit": tools.apply_edit,
     "htmi_reply": tools.reply,
     "htmi_validate": tools.validate,
+    "htmi_pull_comments": tools.pull_comments,
+    "htmi_publish_description": tools.publish_description,
     "htmi_open_review": tools.open_review,
 }
 

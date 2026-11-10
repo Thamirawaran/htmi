@@ -125,7 +125,9 @@ REPLY = {
     "name": "htmi_reply",
     "description": (
         "Reply to a review comment, optionally marking it acknowledged, or addressed with the "
-        "commit that contains the change. You cannot resolve a comment; the reviewer does that."
+        "commit that contains the change. For a comment on a GitHub description the reply is also "
+        "posted to that issue or pull request, so the reviewer sees it there. You cannot resolve a "
+        "comment; the reviewer does that."
     ),
     "parameters": {
         "type": "object",
@@ -158,12 +160,59 @@ VALIDATE = {
     },
 }
 
+PULL_COMMENTS = {
+    "name": "htmi_pull_comments",
+    "description": (
+        "Import review comments people posted on GitHub for an issue or pull request description "
+        "(github:owner/repo#7), so htmi_list_comments and htmi_comment_context see them. Uses the "
+        "person's own gh login. Comments made in the local review page need no pull."
+    ),
+    "parameters": {
+        "type": "object",
+        "properties": {
+            "document": {
+                "type": "string",
+                "description": "The description: github:owner/repo#7, github:#7 or its URL.",
+            },
+        },
+        "required": ["document"],
+    },
+}
+
+PUBLISH_DESCRIPTION = {
+    "name": "htmi_publish_description",
+    "description": (
+        "Put an HTML page from this repository up for review on GitHub: as a new issue (give a "
+        "title), or as the description of an existing issue or pull request (give its number). "
+        "Use this rather than gh for that: the description must be the page in one fenced html "
+        "block, which this does exactly, so people see the page as designed and their comments "
+        "come back to you. Returns the description's document reference (github:owner/repo#7). "
+        "Ask the person before creating an issue they did not ask for."
+    ),
+    "parameters": {
+        "type": "object",
+        "properties": {
+            "document": {"type": "string", "description": "Path of the HTML file, such as docs/proposal.html."},
+            "repo": {"type": "string", "description": "owner/name; defaults to the origin remote."},
+            "title": {"type": "string", "description": "Title of a new issue (or a new title)."},
+            "number": {"type": "integer", "description": "An existing issue or pull request to set."},
+            "replace_existing": {
+                "type": "boolean",
+                "description": "Replace a description that is not already an HTML page (only if the person agreed).",
+            },
+        },
+        "required": ["document"],
+    },
+}
+
 OPEN_REVIEW = {
     "name": "htmi_open_review",
     "description": (
         "Start (or reuse) the local review page for this repository and return its address, so the "
         "person can read a document as authored and comment on the exact element, passage or image "
-        "region. Only this computer can reach it. Give the person the document's address."
+        "region. Only this computer can reach it. Give the person the document's address. When you "
+        "write a page for a person (plan, design, report), first load the skill htmi:document-review "
+        "with skill_view: it says how to make the page colorful and where to put it."
     ),
     "parameters": {
         "type": "object",
@@ -182,5 +231,7 @@ ALL = [
     APPLY_EDIT,
     REPLY,
     VALIDATE,
+    PULL_COMMENTS,
+    PUBLISH_DESCRIPTION,
     OPEN_REVIEW,
 ]

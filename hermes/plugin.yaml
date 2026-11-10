@@ -17,6 +17,8 @@ provides_tools:
   - htmi_apply_edit
   - htmi_reply
   - htmi_validate
+  - htmi_pull_comments
+  - htmi_publish_description
   - htmi_open_review
 provides_hooks:
   - pre_llm_call

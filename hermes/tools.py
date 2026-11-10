@@ -6,7 +6,7 @@ import json
 from collections.abc import Callable
 from typing import Any
 
-from . import review_server, runner
+from . import publish, review_server, runner
 
 AGENT_NAME = "Hermes"
 
@@ -119,12 +119,22 @@ def apply_edit(args: dict) -> str:
 
 @_guard
 def reply(args: dict) -> str:
-    command = ["reply", _need(args, "comment"), "--text", _need(args, "text"), "--agent", AGENT_NAME]
+    comment = _need(args, "comment")
+    command = ["reply", comment, "--text", _need(args, "text"), "--agent", AGENT_NAME]
     if args.get("status"):
         command += ["--status", args["status"]]
     if args.get("revision"):
         command += ["--revision", args["revision"]]
-    return _reply(*runner.run_json(command))
+    result, warnings = runner.run_json(command)
+    # A comment made on a GitHub description is answered where the reviewer is: the reply is
+    # posted to that issue or pull request too (only what is not there yet).
+    rows, _ = runner.run_json(["comments", "--status", "all"])
+    document = next((r.get("document", "") for r in rows if r.get("id") == comment), "")
+    if document.startswith("github:"):
+        posted, more = runner.run_json(["github", "post", comment], timeout=120)
+        result = {**result, "github": posted}
+        warnings += more
+    return _reply(result, warnings)
 
 
 @_guard
@@ -133,6 +143,32 @@ def validate(args: dict) -> str:
     if not isinstance(documents, list) or not all(isinstance(d, str) for d in documents):
         raise TypeError("documents must be a list of strings")
     return _reply(*runner.run_json(["validate", *documents], accept=(0, 3)))
+
+
+@_guard
+def pull_comments(args: dict) -> str:
+    document = _need(args, "document")
+    if not document.startswith(("github:", "https://github.com/")):
+        raise ValueError("htmi_pull_comments is for GitHub descriptions (github:owner/repo#7)")
+    return _reply(*runner.run_json(["github", "pull", document], timeout=120))
+
+
+@_guard
+def publish_description(args: dict) -> str:
+    number = args.get("number")
+    if number is not None and (not isinstance(number, int) or number <= 0):
+        raise ValueError("number must be a positive whole number")
+    root = review_server.repo_root(runner.session_cwd())
+    return _reply(
+        publish.publish(
+            root,
+            _need(args, "document"),
+            args.get("repo"),
+            args.get("title"),
+            number,
+            bool(args.get("replace_existing")),
+        )
+    )
 
 
 @_guard

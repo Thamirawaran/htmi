@@ -20,7 +20,7 @@ comment survives the edit, or says plainly that its target changed or is gone.
 
 |           |                                                                                                                                                                                                                                                                      |
 | --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Tools     | `htmi_list_documents`, `htmi_read_document`, `htmi_list_targets`, `htmi_list_comments`, `htmi_comment_context`, `htmi_apply_edit`, `htmi_reply`, `htmi_validate`, `htmi_open_review`                                                                                 |
+| Tools     | `htmi_list_documents`, `htmi_read_document`, `htmi_list_targets`, `htmi_list_comments`, `htmi_comment_context`, `htmi_apply_edit`, `htmi_reply`, `htmi_validate`, `htmi_pull_comments`, `htmi_publish_description`, `htmi_open_review`                               |
 | Hook      | `pre_llm_call`: when people left new review comments since the last turn, Hermes gets a short notice naming them (id, document, target, author). The comment text is not put into the prompt; Hermes reads a comment with `htmi_comment_context` when it acts on it. |
 | Command   | `/htmi open [document]`, `/htmi comments`, `/htmi stop`, `/htmi init`, `/htmi status`                                                                                                                                                                                |
 | Skill     | `htmi:document-review`: how to write a document for review and act on comments                                                                                                                                                                                       |
@@ -28,7 +28,8 @@ comment survives the edit, or says plainly that its target changed or is gone.
 
 ## Use
 
-1. Install and enable the plugin, then start Hermes in a git repository.
+1. Install and enable the plugin (after installing or updating it, run `hermes gateway restart`
+   so a running gateway loads it), then start Hermes in a git repository.
 2. Ask for a document, for example "write the cache plan as an HTML page I can review".
    Hermes writes it, checks it with `htmi_validate` and opens the review page.
 3. Open the address it gives you (or run `/htmi open docs/plan.html`). Click an element,
@@ -63,9 +64,10 @@ Hermes asks plugins to say this plainly.
   so you can keep commenting while Hermes works, until `/htmi stop` or a restart. Its
   address and process id are kept in the plugin's data folder. Only local pages (the
   dashboard's Review tab) may show it in a frame.
-- **Network.** The plugin makes no network calls. The engine reaches GitHub only when a
-  document is a GitHub description, through your own `gh` login, and only for that
-  description.
+- **Network.** HTMi reaches GitHub only for GitHub descriptions, always through your own
+  `gh` login: `htmi_publish_description` creates an issue or sets a description,
+  `htmi_pull_comments` reads its comments, `htmi_reply` posts a reply to a comment that came
+  from there, and reading or editing a description reads and writes that description. Nothing else leaves your computer.
 - **Credentials and telemetry.** None stored, none sent. The review page uses a random
   token held in memory to accept comments from its own page only.
 
