@@ -220,6 +220,43 @@ textarea:where(:not(.hm-authored *)) {
 .hm-panel:focus {
   outline: none;
 }
+/* The list of all comments is opened from the header; closed, the page takes the full width. */
+.hm-list-closed .hm-layout {
+  grid-template-columns: minmax(0, 1fr);
+}
+.hm-list-closed .hm-panel {
+  display: none;
+}
+.hm-list-toggle[aria-pressed="true"] {
+  border-color: var(--hm-select);
+  background: var(--hm-select-weak);
+}
+/* The selected element's comments: a card beside the element. */
+.hm-pop {
+  position: absolute;
+  z-index: 9;
+  width: min(400px, calc(100vw - 16px));
+  max-height: min(75vh, 680px);
+  overflow-y: auto;
+  padding: var(--hm-space-4);
+  background: var(--hm-surface);
+  border: 1px solid var(--hm-border-strong);
+  border-radius: var(--hm-radius);
+  box-shadow: var(--hm-shadow);
+}
+.hm-pop > .hm-row:first-child {
+  justify-content: space-between;
+}
+.hm-pop[hidden] {
+  display: none;
+}
+.hm-pop:focus {
+  outline: none;
+}
+.hm-embed .hm-pop {
+  max-height: none;
+  overflow: visible;
+}
 .hm-missing {
   color: var(--hm-target-lost);
 }
@@ -525,11 +562,13 @@ img.hm-target.hm-selected {
 }
 
 /* Panel */
-.hm-panel h2 {
+.hm-panel h2,
+.hm-pop h2 {
   font-size: var(--hm-text-lg);
   margin: 0 0 var(--hm-space-3);
 }
-.hm-panel h3 {
+.hm-panel h3,
+.hm-pop h3 {
   font-size: var(--hm-text-sm);
   text-transform: uppercase;
   letter-spacing: 0.04em;

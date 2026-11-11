@@ -326,6 +326,7 @@ export function buildReviewPage(options: ReviewPageOptions): string {
   </div>
   ${options.originalUrl ? `<a class="hm-original" href="${escapeXml(options.originalUrl)}" target="_blank" rel="noopener">Open original (its scripts run, read only)</a>` : ""}
   <span class="hm-mode" data-mode="${options.mode}">${escapeXml(modeLabel)}</span>
+  <button type="button" class="hm-btn hm-btn-small hm-list-toggle" aria-controls="hm-panel" aria-pressed="false" hidden>All comments</button>
 </header>
 <div class="hm-banner" id="hm-banner" hidden></div>
 <div class="hm-layout">

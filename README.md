@@ -87,8 +87,13 @@ the edit and marks itself stale. Digests come from `htmi read <doc> --json` and
 The review page shows the document's own body and styles in a passive view: the
 page's scripts, event handlers and frames do not run there, local images, fonts
 and stylesheets are embedded, and the author's CSS is scoped so it cannot break
-the comment panel. Every element HTMi can address is selectable with the pointer
+HTMi's own controls. Every element HTMi can address is selectable with the pointer
 or the keyboard.
+
+Selecting an element, a passage or an image region opens a card beside it with its
+comments and a box to write one. "All comments" in the header opens the list of every
+comment, with filters and a chooser for any element; it starts closed, and the page
+remembers your choice where the browser allows it.
 
 `htmi serve` also links to the original, scripts and all, served under a
 Content-Security-Policy sandbox with an opaque origin: it can run its own

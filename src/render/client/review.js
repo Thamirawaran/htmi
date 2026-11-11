@@ -31,6 +31,18 @@
   var docEl = document.querySelector("main.hm-doc");
   var liveRegion = document.querySelector("div.hm-live");
   var banner = document.querySelector("div.hm-banner");
+  /* The selected element's comments and the composer open in a card beside the element. The list
+     of every comment is the side panel, which the reviewer opens and closes from the header. */
+  var pop = h("aside", { class: "hm-pop", "aria-label": "Comments on the selection", tabindex: "-1" });
+  pop.hidden = true;
+  document.body.appendChild(pop);
+  var listButton = document.querySelector("button.hm-list-toggle");
+  var listOpen = false;
+  try {
+    listOpen = window.localStorage.getItem("htmi:list") === "open";
+  } catch (e) {
+    /* Storage is blocked in sandboxed frames; the list starts closed. */
+  }
 
   var state = {
     threads: data.threads,
@@ -38,7 +50,10 @@
     tab: "open",
     quoteRanges: {},
     stale: false,
-    /* A confirmation to show once in the next composer, since saving re-renders the panel. */
+    /* The text range of a selected quote, to place the card beside it. */
+    range: null,
+    /* A confirmation for the composer of one target, kept through re-renders until the reviewer
+       types again or selects something else: saving re-renders more than once. */
     notice: null,
   };
 
@@ -352,6 +367,8 @@
   function select(ref, options) {
     options = options || {};
     state.selected = ref;
+    state.range = options.range || null;
+    state.notice = null;
     clearMarks();
     var els = elementsFor(ref);
     els.forEach(function (el) {
@@ -371,9 +388,9 @@
       void els[0].getBoundingClientRect();
       els[0].classList.add("hm-flash");
     }
+    if (embed) document.body.classList.remove("hm-panel-open");
     renderPanel();
-    if (embed)
-      openCard(options.range ? options.range.getBoundingClientRect() : els[0] && els[0].getBoundingClientRect());
+    if (!options.scroll) revealPop();
     announce("Selected " + (KIND_NAMES[ref.kind] || ref.kind).toLowerCase() + " " + describe(ref));
     if (hostApi && ref.kind !== "text") {
       hostApi.postMessage({
@@ -385,6 +402,7 @@
 
   function clearSelection() {
     state.selected = null;
+    state.range = null;
     clearMarks();
     renderPanel();
     if (embed) closeCard();
@@ -392,12 +410,11 @@
 
   /* ---------- embedded in a host page ---------- */
 
-  /** Open the comment card beside what was selected (or at the top), inside the page's own height. */
-  function openCard(rect) {
-    var top = rect ? rect.top + window.scrollY - 8 : 8;
-    panel.style.top = Math.max(8, Math.round(top)) + "px";
+  /** Open the list of comments as a card at the top of the page, inside the page's own height. */
+  function openCard() {
+    panel.style.top = "8px";
     document.body.classList.add("hm-panel-open");
-    postHeight();
+    renderPanel();
   }
 
   function closeCard() {
@@ -416,6 +433,7 @@
     );
     if (document.body.classList.contains("hm-panel-open"))
       bottom = Math.max(bottom, panel.getBoundingClientRect().bottom + window.scrollY + 16);
+    if (!pop.hidden) bottom = Math.max(bottom, pop.getBoundingClientRect().bottom + window.scrollY + 16);
     var height = Math.ceil(bottom);
     if (Math.abs(height - lastHeight) < 2) return;
     lastHeight = height;
@@ -426,12 +444,12 @@
     window.addEventListener("message", function (event) {
       if (event.source !== window.parent || !event.data) return;
       if (event.data.type === "htmi:panel") {
-        if (document.body.classList.contains("hm-panel-open") && !state.selected) closeCard();
+        if (document.body.classList.contains("hm-panel-open")) closeCard();
         else {
           state.selected = null;
+          state.range = null;
           clearMarks();
-          renderPanel();
-          openCard(null);
+          openCard();
         }
       }
     });
@@ -484,7 +502,7 @@
         select(refForDiagram(svg.getAttribute("data-doc-diagram")), {});
         return;
       }
-      if (el === panel || el === document.body) break;
+      if (el === panel || el === pop || el === document.body) break;
     }
   });
 
@@ -1141,20 +1159,118 @@
     return box;
   }
 
+  /** Whether the list of comments is showing: the side panel, or in a host page the list card. */
+  function listShown() {
+    return embed ? document.body.classList.contains("hm-panel-open") : listOpen;
+  }
+
+  function staleNote() {
+    return h("p", {
+      class: "hm-draft-state",
+      "data-state": "error",
+      text: "This page is out of date. Reload it before writing more comments.",
+    });
+  }
+
   function renderPanel() {
     panel.textContent = "";
-    if (state.stale)
-      panel.appendChild(
-        h("p", {
-          class: "hm-draft-state",
-          "data-state": "error",
-          text: "This page is out of date. Reload it before writing more comments.",
-        }),
-      );
-    if (state.selected) renderSelected(state.selected);
-    else renderOverview();
+    pop.textContent = "";
+    // The list is built only while it shows, so a thread is never in the page twice unseen.
+    if (listShown()) {
+      if (state.stale) panel.appendChild(staleNote());
+      renderOverview();
+    }
+    if (state.selected) {
+      if (state.stale) pop.appendChild(staleNote());
+      renderSelected(state.selected);
+      pop.hidden = false;
+    } else pop.hidden = true;
+    if (listButton) {
+      listButton.textContent = "All comments (" + state.threads.length + ")";
+      listButton.setAttribute("aria-pressed", String(listOpen));
+    }
     layoutPins();
+    placePop();
     postHeight();
+  }
+
+  /** Open or close the side list of every comment; remembered for this browser where storage works. */
+  function setList(open) {
+    listOpen = open;
+    try {
+      window.localStorage.setItem("htmi:list", open ? "open" : "closed");
+    } catch (e) {
+      /* Not remembered where storage is blocked. */
+    }
+    document.body.classList.toggle("hm-list-closed", !open);
+    renderPanel();
+    if (open) panel.focus({ preventScroll: true });
+  }
+
+  if (!embed) {
+    document.body.classList.toggle("hm-list-closed", !listOpen);
+    if (listButton) {
+      listButton.hidden = false;
+      listButton.addEventListener("click", function () {
+        setList(!listOpen);
+      });
+    }
+  }
+
+  /** Where the card points: the selected quote, or the first element of the selection. */
+  function anchorRect() {
+    if (state.range) {
+      var r = state.range.getBoundingClientRect();
+      if (r.width || r.height) return r;
+    }
+    var els = state.selected ? elementsFor(state.selected) : [];
+    return els[0] ? els[0].getBoundingClientRect() : null;
+  }
+
+  /** Place the card beside the selection: to its right, else its left, else over the page's
+      right edge at the same height, and on narrow screens under it. Page coordinates, so the
+      card stays with the element while the page scrolls. */
+  function placePop() {
+    if (pop.hidden) return;
+    var gap = 12;
+    var margin = 8;
+    var right = document.documentElement.clientWidth;
+    if (!embed && listOpen && window.innerWidth > 900) right = panel.getBoundingClientRect().left;
+    var bar = embed ? 0 : document.querySelector("header.hm-bar").getBoundingClientRect().bottom;
+    var w = pop.offsetWidth;
+    var rect = anchorRect();
+    var left;
+    var top;
+    if (!rect) {
+      left = right - w - margin;
+      top = bar + margin;
+    } else if (rect.right + gap + w <= right - margin) {
+      left = rect.right + gap;
+      top = rect.top;
+    } else if (rect.left - gap - w >= margin) {
+      left = rect.left - gap - w;
+      top = rect.top;
+    } else if (right >= 700) {
+      // Over the page's right edge, just below the element's pin so the pin stays visible.
+      left = right - w - margin;
+      top = rect.top + 18;
+    } else {
+      left = Math.min(rect.left, right - w - margin);
+      top = rect.bottom + gap;
+    }
+    // An element partly under the sticky header gets its card just below the header.
+    if (rect && top < bar + margin && rect.bottom > bar + 40) top = bar + margin;
+    pop.style.left = Math.round(Math.max(margin, left) + window.scrollX) + "px";
+    pop.style.top = Math.round(Math.max(margin, top + window.scrollY)) + "px";
+  }
+
+  /** After a click near the bottom of the window, scroll so the whole card shows. */
+  function revealPop() {
+    if (embed || pop.hidden) return;
+    var r = pop.getBoundingClientRect();
+    var bar = document.querySelector("header.hm-bar").getBoundingClientRect().bottom;
+    if (r.bottom <= window.innerHeight || r.top >= window.innerHeight) return;
+    window.scrollBy({ top: Math.min(r.bottom - window.innerHeight + 16, r.top - bar - 8), behavior: "smooth" });
   }
 
   function renderSelected(ref) {
@@ -1228,7 +1344,7 @@
         }),
       );
     }
-    panel.appendChild(
+    pop.appendChild(
       h(
         "div",
         { class: "hm-row" },
@@ -1236,18 +1352,18 @@
         h("button", {
           type: "button",
           class: "hm-btn hm-btn-small",
-          text: embed ? "Close" : "Back to all comments",
+          text: "Close",
           onclick: clearSelection,
         }),
       ),
     );
-    panel.appendChild(card);
+    pop.appendChild(card);
     var threads = threadsFor(ref);
-    panel.appendChild(h("h3", { text: threads.length ? "Comments here" : "No comments here yet" }));
+    pop.appendChild(h("h3", { text: threads.length ? "Comments here" : "No comments here yet" }));
     threads.forEach(function (thread) {
-      panel.appendChild(threadCard(thread, { showTarget: ref.kind === "text" }));
+      pop.appendChild(threadCard(thread, { showTarget: ref.kind === "text" }));
     });
-    panel.appendChild(composer(ref));
+    pop.appendChild(composer(ref));
   }
 
   function renderOverview() {
@@ -1468,6 +1584,7 @@
     });
 
     function save() {
+      state.notice = null;
       draft.kind = kindSelect.value;
       draft.text = area.value;
       if (!draft.text.trim()) {
@@ -1486,10 +1603,9 @@
     area.addEventListener("input", save);
     kindSelect.addEventListener("change", save);
     if (draft.text) save();
-    else if (state.notice) {
+    else if (state.notice && state.notice.key === key) {
       status.setAttribute("data-state", "saved");
-      status.textContent = state.notice;
-      state.notice = null;
+      status.textContent = state.notice.text;
     }
 
     box.appendChild(h("label", { for: uid + "-kind", text: "Type" }));
@@ -1550,10 +1666,10 @@
           .then(function (result) {
             storage.remove(key);
             area.value = "";
-            state.notice = "Saved as " + result.id + " in .htmi/annotations.jsonl";
             if (isRegion(ref)) delete ref.selector;
+            state.notice = { key: draftKey(ref), text: "Saved as " + result.id + " in .htmi/annotations.jsonl" };
             status.setAttribute("data-state", "saved");
-            status.textContent = state.notice;
+            status.textContent = state.notice.text;
             announce("Comment " + result.id + " saved");
             return refresh();
           })
@@ -1738,6 +1854,7 @@
       pending = false;
       sizeFigures();
       layoutPins();
+      placePop();
     });
   }
   window.addEventListener("resize", function () {
