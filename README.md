@@ -71,6 +71,7 @@ Comment button; Hermes brings those comments back.
   limits
 - [Hermes plugin](hermes/README.md): tools, what it does on your computer
 - [Architecture](ARCHITECTURE.md)
+- [Privacy](PRIVACY.md): HTMi collects nothing
 
 ## License
 
