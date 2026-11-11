@@ -46,6 +46,13 @@ comment survives the edit, or says plainly that its target changed or is gone.
 Comments live in `.htmi/annotations.jsonl` in your repository, next to the documents,
 so they travel with the repository through git.
 
+To see pages and comment on GitHub, add the HTMi Chrome extension: download
+`htmi-chrome-0.1.0.zip` from the
+[latest release](https://github.com/Thamirawaran/htmi/releases/latest), unzip it, and in
+`chrome://extensions` turn on Developer mode and choose Load unpacked.
+
+Remove the plugin with `hermes plugins remove htmi`. Your documents and `.htmi/` stay.
+
 ## Requirements
 
 - Hermes Agent 0.23.0 or newer.

@@ -23,16 +23,39 @@ Version 0.1.0.
 
 ## Install
 
-Node 20.11 or later. From a checkout of this repository:
+Each part installs in one step, needs no account or server, and touches nothing outside
+its own folder. Your documents stay ordinary files; comments go in `.htmi/` in the
+repository.
 
-```bash
-npm install
-npm run build
-npm link            # puts `htmi` on your PATH; or run node dist/cli/main.js
+**Hermes Agent**
+
+```sh
+hermes plugins install Thamirawaran/htmi/hermes --enable
 ```
 
-GitHub features use the GitHub CLI (`gh auth login`). `lucide:` icons need the
-optional `lucide-static` package in your project.
+If Hermes is already running, restart it once with `hermes gateway restart`. Then ask
+Hermes for a page to review. Remove it with `hermes plugins remove htmi`. It needs Hermes
+0.23 or newer and git; Hermes provides Node.
+
+**Chrome, for GitHub**
+
+1. Download `htmi-chrome-0.1.0.zip` from the
+   [latest release](https://github.com/Thamirawaran/htmi/releases/latest) and unzip it.
+2. Open `chrome://extensions` and turn on **Developer mode**.
+3. Choose **Load unpacked** and pick the unzipped folder.
+
+It runs only on github.com and asks for no permission beyond storage. Remove it with
+**Remove** on the same page.
+
+**Command line, for any agent**
+
+```bash
+git clone https://github.com/Thamirawaran/htmi && cd htmi
+npm install && npm run build && npm link   # puts `htmi` on your PATH
+```
+
+It needs Node 20.11 or later. GitHub features use the GitHub CLI (`gh auth login`).
+`lucide:` icons need the optional `lucide-static` package in your project.
 
 ## With Hermes Agent
 
@@ -235,14 +258,8 @@ HTML document: GitHub shows its source, the extension shows the page, and
 `htmi read`, `htmi context` and checked operations treat it as HTML (edits
 stay inside the fence). Other descriptions are Markdown, Mermaid included.
 
-Install it from a checkout:
-
-```bash
-npm run build:chrome          # writes chrome/dist
-```
-
-Then in Chrome open `chrome://extensions`, turn on Developer mode, choose
-"Load unpacked" and pick `chrome/dist`.
+Install it as described under [Install](#install). To build it yourself,
+`npm run package:chrome` writes `chrome/dist` and the zip.
 
 How it stays safe: the extension reads with your own signed-in session, the same
 requests GitHub's pages make (raw files, the description), and asks for no

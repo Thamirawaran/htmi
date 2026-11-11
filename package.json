@@ -22,7 +22,8 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "bundle:engine": "node scripts/bundle-engine.mjs hermes/bundle",
-    "build:chrome": "cd chrome && npm install --prefer-offline --no-audit --fund=false && npm run build"
+    "build:chrome": "cd chrome && npm install --prefer-offline --no-audit --fund=false && npm run build",
+    "package:chrome": "npm run build:chrome && cd chrome && npm run package"
   },
   "dependencies": {
     "@dagrejs/dagre": "1.1.8",
