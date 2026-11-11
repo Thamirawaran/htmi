@@ -55,4 +55,5 @@ await build({
 });
 cpSync(join(here, "src/manifest.json"), join(dist, "manifest.json"));
 cpSync(join(here, "src/viewer.html"), join(dist, "viewer.html"));
+cpSync(join(here, "src/icons"), join(dist, "icons"), { recursive: true });
 console.log("built chrome/dist: load it with chrome://extensions, Developer mode, Load unpacked");

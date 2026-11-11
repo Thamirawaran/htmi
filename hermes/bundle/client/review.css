@@ -874,3 +874,28 @@ body.hm-embed {
 .hm-embed.hm-panel-open .hm-panel {
   display: block;
 }
+
+/* The card beside the selection takes the page's right margin when there is no room beside
+   the element, so it never covers the page. On a phone the full page shows it as a sheet. */
+body.hm-pop-margin .hm-doc {
+  padding-right: calc(min(400px, 100vw - 16px) + 32px);
+}
+body.hm-pop-margin:not(.hm-embed) .hm-doc {
+  max-width: calc(980px + 432px);
+}
+@media (max-width: 700px) {
+  body:not(.hm-embed) .hm-pop {
+    position: fixed;
+    left: 0 !important;
+    right: 0;
+    bottom: 0;
+    top: auto !important;
+    width: auto;
+    max-height: 55vh;
+    border-radius: var(--hm-radius) var(--hm-radius) 0 0;
+    z-index: 12;
+  }
+  body:not(.hm-embed):has(.hm-pop:not([hidden])) .hm-doc {
+    padding-bottom: 60vh;
+  }
+}

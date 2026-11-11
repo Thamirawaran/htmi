@@ -377,20 +377,20 @@
     if (ref.kind === "text" && options.range && window.CSS && CSS.highlights && window.Highlight) {
       CSS.highlights.set("hm-quote-selected", new Highlight(options.range));
     }
-    if (options.scroll && els[0]) {
-      els[0].scrollIntoView({ block: "center", behavior: "smooth" });
-    } else if (options.scroll && options.range) {
-      var node = options.range.startContainer.parentElement;
-      if (node) node.scrollIntoView({ block: "center", behavior: "smooth" });
-    }
     if (options.flash && els[0]) {
       els[0].classList.remove("hm-flash");
       void els[0].getBoundingClientRect();
       els[0].classList.add("hm-flash");
     }
     if (embed) document.body.classList.remove("hm-panel-open");
+    // Placing the card can reflow the page (it may take the right margin), so scroll after it.
     renderPanel();
-    if (!options.scroll) revealPop();
+    if (options.scroll && els[0]) {
+      els[0].scrollIntoView({ block: "center", behavior: "smooth" });
+    } else if (options.scroll && options.range) {
+      var node = options.range.startContainer.parentElement;
+      if (node) node.scrollIntoView({ block: "center", behavior: "smooth" });
+    } else revealPop();
     announce("Selected " + (KIND_NAMES[ref.kind] || ref.kind).toLowerCase() + " " + describe(ref));
     if (hostApi && ref.kind !== "text") {
       hostApi.postMessage({
@@ -1227,46 +1227,66 @@
     return els[0] ? els[0].getBoundingClientRect() : null;
   }
 
-  /** Place the card beside the selection: to its right, else its left, else over the page's
-      right edge at the same height, and on narrow screens under it. Page coordinates, so the
-      card stays with the element while the page scrolls. */
-  function placePop() {
-    if (pop.hidden) return;
-    var gap = 12;
-    var margin = 8;
+  /** The card's place beside the page's content column, at the selection's height, to its right
+      or left; null when there is no room. Beside the column, not the element: a card next to a
+      narrow element would hang over the wider ones under it. */
+  function besideSpot(gap, margin) {
     var right = document.documentElement.clientWidth;
     if (!embed && listOpen && window.innerWidth > 900) right = panel.getBoundingClientRect().left;
-    var bar = embed ? 0 : document.querySelector("header.hm-bar").getBoundingClientRect().bottom;
     var w = pop.offsetWidth;
+    var box = docEl.getBoundingClientRect();
+    var style = window.getComputedStyle(docEl);
+    var contentLeft = box.left + parseFloat(style.paddingLeft);
+    var contentRight = box.right - parseFloat(style.paddingRight);
     var rect = anchorRect();
-    var left;
-    var top;
-    if (!rect) {
-      left = right - w - margin;
-      top = bar + margin;
-    } else if (rect.right + gap + w <= right - margin) {
-      left = rect.right + gap;
-      top = rect.top;
-    } else if (rect.left - gap - w >= margin) {
-      left = rect.left - gap - w;
-      top = rect.top;
-    } else if (right >= 700) {
-      // Over the page's right edge, just below the element's pin so the pin stays visible.
-      left = right - w - margin;
-      top = rect.top + 18;
-    } else {
-      left = Math.min(rect.left, right - w - margin);
-      top = rect.bottom + gap;
+    var top = rect ? rect.top : 0;
+    if (contentRight + gap + w <= right - margin) return { left: contentRight + gap, top: top, rect: rect };
+    if (contentLeft - gap - w >= margin) return { left: contentLeft - gap - w, top: top, rect: rect };
+    return null;
+  }
+
+  /** Place the card beside the selection, never over the page: where there is no room beside
+      it, the page makes room for the card in its right margin while the card is open. On a
+      phone the full page shows the card as a sheet at the bottom instead. Page coordinates,
+      so the card stays with the element while the page scrolls. */
+  function placePop() {
+    var body = document.body;
+    var had = body.classList.contains("hm-pop-margin");
+    body.classList.remove("hm-pop-margin");
+    var sheet = !embed && window.innerWidth <= 700;
+    if (pop.hidden || sheet) {
+      if (had) layoutPins();
+      return;
     }
+    var gap = 12;
+    var margin = 8;
+    var spot = besideSpot(gap, margin);
+    if (!spot) {
+      body.classList.add("hm-pop-margin");
+      spot = besideSpot(gap, margin);
+    }
+    if (!spot) {
+      // Too narrow even with the margin: under the element.
+      var r = anchorRect() || docEl.getBoundingClientRect();
+      var w = pop.offsetWidth;
+      spot = {
+        left: Math.min(r.left, document.documentElement.clientWidth - w - margin),
+        top: r.bottom + gap,
+        rect: null,
+      };
+    }
+    if (had !== body.classList.contains("hm-pop-margin")) layoutPins();
+    var bar = embed ? 0 : document.querySelector("header.hm-bar").getBoundingClientRect().bottom;
+    var top = spot.rect ? spot.top : bar + margin;
     // An element partly under the sticky header gets its card just below the header.
-    if (rect && top < bar + margin && rect.bottom > bar + 40) top = bar + margin;
-    pop.style.left = Math.round(Math.max(margin, left) + window.scrollX) + "px";
+    if (spot.rect && top < bar + margin && spot.rect.bottom > bar + 40) top = bar + margin;
+    pop.style.left = Math.round(Math.max(margin, spot.left) + window.scrollX) + "px";
     pop.style.top = Math.round(Math.max(margin, top + window.scrollY)) + "px";
   }
 
   /** After a click near the bottom of the window, scroll so the whole card shows. */
   function revealPop() {
-    if (embed || pop.hidden) return;
+    if (embed || pop.hidden || window.innerWidth <= 700) return;
     var r = pop.getBoundingClientRect();
     var bar = document.querySelector("header.hm-bar").getBoundingClientRect().bottom;
     if (r.bottom <= window.innerHeight || r.top >= window.innerHeight) return;

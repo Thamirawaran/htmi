@@ -3,6 +3,13 @@
   "name": "HTMi",
   "version": "0.1.0",
   "description": "Review HTML files and issue and pull request descriptions on GitHub as authored pages, and hand pinned comments to GitHub's comment box.",
+  "icons": {
+    "16": "icons/icon-16.png",
+    "32": "icons/icon-32.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  },
+  "homepage_url": "https://github.com/Thamirawaran/htmi",
   "permissions": ["storage"],
   "content_scripts": [
     {
@@ -11,8 +18,15 @@
       "run_at": "document_idle"
     }
   ],
-  "sandbox": { "pages": ["viewer.html"] },
-  "web_accessible_resources": [{ "resources": ["viewer.html"], "matches": ["https://github.com/*"] }],
+  "sandbox": {
+    "pages": ["viewer.html"]
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["viewer.html"],
+      "matches": ["https://github.com/*"]
+    }
+  ],
   "content_security_policy": {
     "sandbox": "sandbox allow-scripts; default-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; font-src data:; frame-src 'none'; connect-src 'none'; form-action 'none'"
   }
