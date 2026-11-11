@@ -179,3 +179,15 @@ def stop(root: Path) -> bool:
 
 def document_url(server_url: str, ref: str) -> str:
     return f"{server_url}/doc/{quote(ref, safe='')}"
+
+
+def show(root: Path, ref: str) -> str:
+    """The address of a document on this repository's running page, remembered as the
+    page the dashboard's Review tab shows for it."""
+    state = _load()
+    record = state.get(str(root))
+    if not record:
+        raise runner.EngineError("no review page is running for this repository")
+    record["page"] = document_url(record["url"], ref)
+    _save(state)
+    return record["page"]

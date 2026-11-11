@@ -1,6 +1,7 @@
 """Dashboard backend for HTMi, mounted at /api/plugins/htmi/.
 
-Lists the review pages that are running, read from the record the plugin's tools and
+Lists the review pages that are running, each with the document Hermes or `/htmi open`
+opened last (the page the tab shows), read from the record the plugin's tools and
 the /htmi command keep in the plugin's data folder. It starts nothing and changes
 nothing; a page is started by Hermes (htmi_open_review) or by `/htmi open`.
 """
@@ -40,7 +41,13 @@ def servers() -> dict:
     except (OSError, ValueError):
         state = {}
     live = [
-        {"root": root, "name": os.path.basename(root), "url": r["url"], "since": r.get("since")}
+        {
+            "root": root,
+            "name": os.path.basename(root),
+            "url": r["url"],
+            "page": r.get("page") or r["url"] + "/",
+            "since": r.get("since"),
+        }
         for root, r in (state.items() if isinstance(state, dict) else [])
         if isinstance(r, dict) and _alive(int(r.get("pid", 0)), str(r.get("url", "")))
     ]

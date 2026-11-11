@@ -187,5 +187,5 @@ def open_review(args: dict) -> str:
         report, _ = runner.run_json(["validate", document], cwd=root, accept=(0, 3))
         ref = report["documents"][0]["path"]
         result["document"] = ref
-        result["document_url"] = review_server.document_url(server["url"], ref)
+        result["document_url"] = review_server.show(root, ref)
     return _reply(result)

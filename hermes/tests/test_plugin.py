@@ -75,6 +75,7 @@ def test_review_page_starts_once_and_serves_the_document(repo):
     with urllib.request.urlopen(opened["document_url"], timeout=10) as page:
         html = page.read().decode()
     assert "Cache plan" in html and "Stale reads after failover" in html
+    assert review_server.running(repo)["page"] == opened["document_url"]  # what the dashboard tab shows
 
     again = call(tools.open_review)
     assert again["started"] is False and again["url"] == opened["url"]

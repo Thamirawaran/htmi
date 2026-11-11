@@ -1,7 +1,7 @@
 // HTMi review tab for the Hermes dashboard. Plain JavaScript, no build step.
-// It lists the review pages HTMi is running and shows the chosen one in a frame. The
-// page itself is served by `htmi serve` on 127.0.0.1; comments made in it are stored
-// in the repository and reach Hermes on its next turn.
+// It lists the review pages HTMi is running and shows the chosen one in a frame, at the
+// document Hermes opened last. The page itself is served by `htmi serve` on 127.0.0.1;
+// comments made in it are stored in the repository and reach Hermes on its next turn.
 (function () {
   "use strict";
   const SDK = window.__HERMES_PLUGIN_SDK__;
@@ -90,13 +90,13 @@
         h(Badge, { variant: "outline" }, "only this computer can reach it"),
         h(
           "a",
-          { href: current.url + "/", target: "_blank", rel: "noreferrer", className: "text-sm underline ml-auto" },
+          { href: current.page || current.url + "/", target: "_blank", rel: "noreferrer", className: "text-sm underline ml-auto" },
           "Open in a new tab",
         ),
       ),
       h("iframe", {
-        key: current.url,
-        src: current.url + "/",
+        key: current.page || current.url,
+        src: current.page || current.url + "/",
         title: "HTMi review of " + current.name,
         referrerPolicy: "no-referrer",
         className: "w-full flex-1 rounded-md border",

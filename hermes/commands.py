@@ -34,7 +34,7 @@ def _run(command: str, rest: list[str]) -> str:
         if rest:
             report, _ = runner.run_json(["validate", rest[0]], cwd=root, accept=(0, 3))
             path = report["documents"][0]["path"]
-            lines.append(f"  {review_server.document_url(server['url'], path)}")
+            lines.append(f"  {review_server.show(root, path)}")
         lines.append("Only this computer can reach it. Comments you leave there reach Hermes on its next turn.")
         return "\n".join(lines)
     if command == "comments":
