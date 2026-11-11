@@ -226,7 +226,7 @@ document. Agents that speak MCP can use the server instead, for example with
 Claude Code:
 
 ```bash
-claude mcp add htmi -- node /path/to/htmi/dist/cli/main.js mcp
+claude mcp add htmi -- htmi mcp
 ```
 
 It offers seven tools: list documents, read a document, list targets, list
