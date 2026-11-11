@@ -336,3 +336,7 @@ npm run format
 ```
 
 Architecture: [ARCHITECTURE.md](ARCHITECTURE.md).
+
+## License
+
+MIT, see [LICENSE](LICENSE).

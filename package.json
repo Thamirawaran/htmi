@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "description": "Review diagrams and technical documents in the tools you already use, and hand pinned, revision-aware feedback to your coding agent.",
-  "license": "UNLICENSED",
+  "license": "MIT",
   "type": "module",
   "bin": {
     "htmi": "dist/cli/main.js"

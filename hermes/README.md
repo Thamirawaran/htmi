@@ -80,3 +80,7 @@ the source builds. The Python files only translate between Hermes and the engine
 
 Tests: `uv run --no-project --with pytest pytest hermes/tests` from the repository root.
 They run the real engine in a temporary git repository.
+
+## License
+
+MIT, see [LICENSE](LICENSE).
