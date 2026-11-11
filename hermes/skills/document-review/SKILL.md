@@ -1,7 +1,7 @@
 ---
 name: document-review
 description: Write colorful, artifact-quality HTML pages for a person to review, put them where they belong (the repository, a pull request or an issue), and act on their pinned comments with HTMi's tools
-version: 0.3.0
+version: 0.4.0
 author: Thamirawaran
 platforms: [macos, linux]
 metadata:
@@ -51,13 +51,30 @@ sans-serif` for text and `ui-monospace, "SF Mono", Menlo, monospace` for code an
   element that must stand apart (a decision, a risk), not to every block. Avoid stock
   looks: purple-to-blue gradient heroes, emoji as section markers, everything centered,
   the same rounded shadowed card everywhere.
-- **Show, do not only tell, drawn to scale.**
-  - Numbers become SVG charts: one scale for bars, ticks and labels; every tick label a
-    value the chart reaches; axis titles with units; values labeled on the marks; room in
-    the `viewBox` for the outermost labels; text colored from the tokens.
-  - Processes and architecture become SVG diagrams: boxes with explicit fills, arrows
-    with a `<marker>`, labels that never overlap a line, one color per role (service,
-    store, external), and a short legend when colors carry meaning.
+- **Show, do not only tell.** Every page has at least one diagram of the mechanism, and
+  every set of numbers worth comparing gets a chart. If a sentence says it faster, write
+  the sentence instead.
+  - **Diagrams show the mechanism, not its name:** the path a request takes, the store it
+    crosses, the hop being added. To compare options or show a change, draw the
+    difference (before and after side by side, the one edge each option adds or removes,
+    the changed parts in the accent color). Label every arrow with what it does
+    (`reads`, `invalidates`, `on miss`). Align boxes to a grid with even gaps.
+  - **Charts pick the form from the job:** bars for magnitude, a line for change over
+    time, a single big number when one figure is the point. One axis only (never two
+    scales; two measures make two charts). Bars start at zero; one scale places marks,
+    ticks and labels; every tick is a value the chart reaches; axis titles carry units;
+    label values on the marks selectively; a faint grid. Series colors in a fixed order;
+    one hue light to dark for magnitude; ok, warn and risk colors only for status, with a
+    word beside them. Text stays in ink colors, not the series color. Two or more series
+    get a legend. Estimates look different from measurements (a hatched or lighter mark,
+    and the word "estimate").
+  - **SVG mechanics:** `viewBox="0 0 W H"` sized to the content with
+    `max-width: 100%; height: auto`; strokes, text and arrowheads in `currentColor` or
+    tokens so both themes read; arrowheads from a `<marker>` in the same SVG; text about
+    11 to 13px, short labels, never over a line; each mark gets a `<title>` with its exact
+    value (shown on hover); no `<script>`, `<foreignObject>` or images inside.
+  - **One figure, one claim:** wrap each in `<figure>` with a `<figcaption>` saying what
+    it shows, and give the `<svg>` `role="img"` and an `aria-label` with the same claim.
   - Plans become a timeline; options become a comparison table with a tinted header row
     and a verdict column; status becomes a colored badge (word plus color, never color
     alone).
@@ -74,12 +91,14 @@ sans-serif` for text and `ui-monospace, "SF Mono", Menlo, monospace` for code an
 What each kind of page usually shows:
 
 - **An issue (a proposal or plan):** the problem in two sentences with the measured
-  facts, a diagram of the design, the options compared, a chart of the expected effect
-  (marked as estimates), the rollout as a timeline, risks, and the decision asked for.
+  facts, a diagram of the design, the options compared (a diagram of what each changes,
+  then a table), a chart of the expected effect (estimates marked), the rollout as a
+  timeline, risks, and the decision asked for.
 - **A pull request description (a review guide):** what changed and why in two
-  sentences, a diagram of the new flow with the changed parts highlighted, a file map
-  (each file, what changed, where to look first), before and after, how it was tested
-  (the commands and their results), and what is deliberately left out.
+  sentences, a before and after diagram of the flow with the changed parts highlighted,
+  a file map (each file, what changed, where to look first), how it was tested (the
+  commands, and a chart when there are numbers such as tests by area or timings), and
+  what is deliberately left out.
 - **A repository document:** whichever of the above fits, plus links to the code it
   describes (`src/orders.ts:3`).
 
