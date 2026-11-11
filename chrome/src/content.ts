@@ -329,7 +329,14 @@ function mountViewer(
     );
   async function onMessage(event: MessageEvent) {
     if (event.source !== frame.contentWindow) return;
-    const m = event.data as { type?: string; paths?: string[]; message?: string; markdown?: string; height?: number };
+    const m = event.data as {
+      type?: string;
+      paths?: string[];
+      message?: string;
+      markdown?: string;
+      height?: number;
+      by?: number;
+    };
     try {
       if (m.type === "htmi:viewer-ready") {
         const loaded = await target.load();
@@ -347,6 +354,10 @@ function mountViewer(
         build();
       } else if (m.type === "htmi:height" && options.embed && typeof m.height === "number") {
         frame.style.height = `${Math.max(120, Math.min(m.height, 20000))}px`;
+      } else if (m.type === "htmi:scroll" && options.embed && typeof m.by === "number") {
+        // The page grew around the element the reader clicked (the comment card took the
+        // margin); scroll by the same amount so the element stays under the pointer.
+        window.scrollBy({ top: Math.max(-20000, Math.min(m.by, 20000)), behavior: "instant" });
       } else if (m.type === "htmi:error") {
         toast(`HTMi could not show this: ${m.message}`);
       } else if (m.type === "htmi:comment" && m.markdown) {

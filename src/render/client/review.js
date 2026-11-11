@@ -383,8 +383,17 @@
       els[0].classList.add("hm-flash");
     }
     if (embed) document.body.classList.remove("hm-panel-open");
-    // Placing the card can reflow the page (it may take the right margin), so scroll after it.
+    // Placing the card can reflow the page (it may take the right margin), so scroll after it,
+    // and after a click keep the element where the reviewer clicked it.
+    var before = options.scroll ? null : anchorRect();
     renderPanel();
+    var after = before ? anchorRect() : null;
+    var moved = before && after ? Math.round(after.top - before.top) : 0;
+    if (moved) {
+      // Inside a host page the host scrolls; the page itself does not.
+      if (embed && window.parent !== window) window.parent.postMessage({ type: "htmi:scroll", by: moved }, "*");
+      else if (!embed) window.scrollBy({ top: moved, behavior: "instant" });
+    }
     if (options.scroll && els[0]) {
       els[0].scrollIntoView({ block: "center", behavior: "smooth" });
     } else if (options.scroll && options.range) {
