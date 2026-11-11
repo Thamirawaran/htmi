@@ -1,7 +1,7 @@
 ---
 name: document-review
 description: Write colorful, artifact-quality HTML pages for a person to review, put them where they belong (the repository, a pull request or an issue), and act on their pinned comments with HTMi's tools
-version: 0.2.0
+version: 0.3.0
 author: Thamirawaran
 platforms: [macos, linux]
 metadata:
@@ -27,32 +27,61 @@ the page through checked edits, and reply.
 
 ## Make the page worth reading
 
-Write it the way a polished artifact looks, not like a plain text dump:
+Design it the way a studio designs one document for one client: choices that come from
+this subject, not a template. A plan or a review guide gets a polished, utilitarian
+treatment (real hierarchy, considered spacing, a proper palette), not a landing page.
 
-- **One self-contained file.** All styling in one `<style>` element in `<head>`. No
-  external scripts, fonts, CSS or images from the internet; the review view does not run
-  scripts and does not fetch remote files. Charts and diagrams are inline `<svg>`.
-- **A clear visual system.** Define colors as CSS custom properties on `:root`
-  (a primary, an accent, a surface, text, muted text, and success, warning and danger
-  tones) and use them everywhere. Add a dark scheme with
-  `@media (prefers-color-scheme: dark)` that redefines the same properties.
-- **Structure people can scan.** A header band with the title, a one-line summary and
-  key facts as small stat cards; then sections with `<h2>` headings; cards with soft
-  shadows and rounded corners for options or findings; tables with a tinted header row
-  and zebra rows; colored badges for status (ok, at risk, blocked); callouts for
-  decisions and open questions.
-- **Show, do not only tell.** Inline SVG bar or line charts for numbers (label the axes
-  and values), simple SVG flow diagrams for processes, a timeline for plans.
-- **Contrast inside colored areas.** Text on a colored band or card must stay readable,
-  including `code`, links and badges inside it: give them their own colors there, for
-  example `header code { background: rgba(255,255,255,.18); color: inherit; }`.
-- **Readable everywhere.** `max-width` around 960px, system font stack, line height
-  about 1.55, a layout that also works at phone width (flex or grid that wraps).
-- **Stable ids on what people will discuss.** Every section, card, table, chart and key
-  paragraph gets a meaningful `id` (`#risks`, `#option-b`, `#latency-chart`), so
+- **One self-contained file.** All styling in one `<style>` in `<head>`. No scripts,
+  web fonts, remote CSS or remote images: the review view runs no scripts and fetches
+  nothing. Use system font stacks (for example `system-ui, -apple-system, "Segoe UI",
+sans-serif` for text and `ui-monospace, "SF Mono", Menlo, monospace` for code and
+  numbers). Charts and diagrams are inline `<svg>`.
+- **Tokens first.** Start the `<style>` with a one-line comment naming the layout idea,
+  then `:root` tokens: 4 to 6 colors (ground, surface, ink, muted ink, one accent drawn
+  from the subject, a line color) plus separate semantic tones (ok, warn, risk) that are
+  not the accent. Pick neutrals with a slight bias toward the accent rather than pure
+  grey. Redefine every color token under `@media (prefers-color-scheme: dark)`, with the
+  same care as the light theme, and use only tokens in rules, so both themes read well.
+- **A type scale.** Four or five sizes, kept to; headings with `text-wrap: balance`;
+  running text near 65 characters wide, line height about 1.55; small uppercase labels
+  with a little letter spacing; `font-variant-numeric: tabular-nums` where digits line up.
+- **Structure that means something.** Sections with `<h2>` in reading order. Number
+  things only when they are a real sequence (rollout steps, a migration). Big-number
+  tiles only when those figures are the point. Give border, fill and shadow to the one
+  element that must stand apart (a decision, a risk), not to every block. Avoid stock
+  looks: purple-to-blue gradient heroes, emoji as section markers, everything centered,
+  the same rounded shadowed card everywhere.
+- **Show, do not only tell, drawn to scale.**
+  - Numbers become SVG charts: one scale for bars, ticks and labels; every tick label a
+    value the chart reaches; axis titles with units; values labeled on the marks; room in
+    the `viewBox` for the outermost labels; text colored from the tokens.
+  - Processes and architecture become SVG diagrams: boxes with explicit fills, arrows
+    with a `<marker>`, labels that never overlap a line, one color per role (service,
+    store, external), and a short legend when colors carry meaning.
+  - Plans become a timeline; options become a comparison table with a tinted header row
+    and a verdict column; status becomes a colored badge (word plus color, never color
+    alone).
+- **Contrast everywhere.** Text, `code`, links and badges inside a colored band or card
+  get their own colors there; check both themes.
+- **Readable at any width.** A centered column around 960px; flex or grid rows that wrap
+  to one column at phone width; wide tables and diagrams scroll inside their own box.
+- **Stable ids on what people will discuss.** Every section, table, chart, diagram and
+  key paragraph gets a meaningful `id` (`#risks`, `#option-b`, `#latency-chart`), so
   comments stay attached through edits.
-- **Honest content.** State assumptions and unknowns in the text. Numbers you did not
-  measure are labeled as estimates.
+- **Honest content.** Real content from the repository, never filler. State assumptions
+  and unknowns. Numbers you did not measure are labeled as estimates, in the chart too.
+
+What each kind of page usually shows:
+
+- **An issue (a proposal or plan):** the problem in two sentences with the measured
+  facts, a diagram of the design, the options compared, a chart of the expected effect
+  (marked as estimates), the rollout as a timeline, risks, and the decision asked for.
+- **A pull request description (a review guide):** what changed and why in two
+  sentences, a diagram of the new flow with the changed parts highlighted, a file map
+  (each file, what changed, where to look first), before and after, how it was tested
+  (the commands and their results), and what is deliberately left out.
+- **A repository document:** whichever of the above fits, plus links to the code it
+  describes (`src/orders.ts:3`).
 
 Then run `htmi_validate` on it and fix what it reports.
 
