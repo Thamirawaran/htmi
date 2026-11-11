@@ -28,8 +28,13 @@ comment survives the edit, or says plainly that its target changed or is gone.
 
 ## Use
 
-1. Install and enable the plugin (after installing or updating it, run `hermes gateway restart`
-   so a running gateway loads it), then start Hermes in a git repository.
+1. Install and enable the plugin, then start Hermes in a git repository:
+
+   ```sh
+   hermes plugins install Thamirawaran/htmi/hermes --enable
+   hermes gateway restart   # only if a gateway is already running, so it loads the plugin
+   ```
+
 2. Ask for a document, for example "write the cache plan as an HTML page I can review".
    Hermes writes it, checks it with `htmi_validate` and opens the review page.
 3. Open the address it gives you (or run `/htmi open docs/plan.html`). Click an element,

@@ -40,7 +40,13 @@ optional `lucide-static` package in your project.
 that carries the engine with it, so nothing above needs installing. Hermes gets tools
 to read documents, read one review comment with its context, make checked edits and
 reply; a notice when people leave new comments; the `/htmi` command; and a Review tab
-in its dashboard. See [hermes/README.md](hermes/README.md).
+in its dashboard. Install it with
+
+```sh
+hermes plugins install Thamirawaran/htmi/hermes --enable
+```
+
+and see [hermes/README.md](hermes/README.md).
 
 ## Five minute tour
 
