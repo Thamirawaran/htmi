@@ -74,10 +74,10 @@ Hermes asks plugins to say this plainly.
   them.
 - **Files outside the plugin.** HTMi reads documents in the session's repository and the
   files they use (stylesheets, images), and nothing outside it: a path that leaves the
-  repository, also through a symbolic link, is refused for reading and for writing. It writes `.htmi/annotations.jsonl` when comments
-  or replies are added, `.htmi/config.json` and `.gitattributes` on `/htmi init`, and a
-  document when `htmi_apply_edit` changes it (only the named part; the edit is refused if
-  anything else would change).
+  repository, also through a symbolic link, is refused for reading and for writing. It
+  writes `.htmi/annotations.jsonl` when comments or replies are added, `.htmi/config.json`
+  and `.gitattributes` on `/htmi init`, and a document when `htmi_apply_edit` changes it
+  (only the named part; the edit is refused if anything else would change).
 - **A background process.** `htmi_open_review` and `/htmi open` start `htmi serve` for the
   repository: a web server on `127.0.0.1` only, on a port the system picks. It keeps running
   so you can keep commenting while Hermes works, until `/htmi stop` or a restart. Its
@@ -94,7 +94,9 @@ Hermes asks plugins to say this plainly.
   in the Desktop app). A repository the model names, or one set in the repository's
   `.htmi/config.json`, is not enough. Creating an issue, replacing a description and
   editing a description each wait for your approval in Hermes, with a message naming the
-  repository and what changes; an unattended run with nobody to ask is refused.
+  repository and what changes. In a run with nobody to ask (`hermes chat -q`, cron), they
+  are refused unless you set Hermes to approve in that mode (`approvals.single_query_mode`,
+  `approvals.cron_mode`).
 - **Credentials and telemetry.** None stored, none sent. The review page uses a random
   token held in memory to accept comments from its own page only.
 
@@ -103,10 +105,12 @@ Hermes asks plugins to say this plainly.
 The engine is HTMi itself, bundled into `bundle/htmi.mjs`: one unminified ES module built
 from `src/` of [the HTMi repository](https://github.com/Thamirawaran/htmi) by
 `npm run bundle:engine`. A test in that repository fails if the bundle differs from what
-the source builds. The Python files only translate between Hermes and the engine.
+the source builds. The Python files translate between Hermes and the engine, and
+`policy.py` holds the GitHub rules above.
 
 Tests: `uv run --no-project --with pytest pytest hermes/tests` from the repository root.
-They run the real engine in a temporary git repository.
+They run the real engine in a temporary git repository; where a test must see what `gh`
+would receive, a small probe program stands in for `gh` and records its environment.
 
 ## License
 

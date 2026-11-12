@@ -26,7 +26,10 @@ collect, sell or share personal data, and it sends nothing to its authors.
 
 They run on your computer. Comments you write are saved in `.htmi/annotations.jsonl` in
 your own repository. When you ask them to work with GitHub, they use your GitHub CLI
-login (`gh`) to read and write the issues and pull requests you name.
+login (`gh`) to read and write the issues and pull requests you name. The Hermes plugin
+does this only in your repository's origin and repositories you list, and asks you before
+it creates an issue or changes a description. `git` and `gh` are started with a minimal
+environment, so API keys you keep in your environment are not passed to them.
 
 ## Contact
 

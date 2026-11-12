@@ -13,7 +13,8 @@ a table of options, a review guide for a pull request.
 HTMi makes those pages reviewable. You read the page as it was designed, then ask a
 question or disagree right on the element: a chart, a table row, a step in a diagram. Your
 agent gets exactly that comment with its context, changes that part, and replies. The
-comment stays pinned to its element, and to the version you saw, through every edit.
+comment is pinned to its element and to the version you saw. After an edit it is still on
+that element, or HTMi says plainly that the element changed or is gone.
 
 ```mermaid
 flowchart LR
@@ -31,9 +32,8 @@ GitHub comments.
 
 ## Install
 
-Each part installs in one step, needs no account or server, and touches nothing outside
-its own folder. Your documents stay ordinary files; comments go in `.htmi/` in the
-repository.
+No account and no server. Your documents stay ordinary files; comments go in `.htmi/` in
+the repository.
 
 **Hermes Agent**
 
@@ -43,7 +43,9 @@ hermes plugins install Thamirawaran/htmi/hermes --enable
 
 If Hermes is already running, restart it once with `hermes gateway restart`. Then ask
 Hermes for a page to review. Remove it with `hermes plugins remove htmi`. It needs Hermes
-0.23 or newer and git; Hermes provides Node.
+0.23 or newer and git; Hermes provides Node. On GitHub it works only in the repository's
+own origin unless you list other repositories, and Hermes asks you before it creates an
+issue or changes a description.
 
 **Chrome, for GitHub**
 
@@ -52,8 +54,8 @@ Hermes for a page to review. Remove it with `hermes plugins remove htmi`. It nee
 2. Open `chrome://extensions` and turn on **Developer mode**.
 3. Choose **Load unpacked** and pick the unzipped folder.
 
-It runs only on github.com and asks for no permission beyond storage. Remove it with
-**Remove** on the same page.
+It runs only on github.com, its only other permission is storage, and it posts nothing
+itself. Remove it with **Remove** on the same page.
 
 **Claude Code, Codex and other agents**
 
@@ -97,9 +99,10 @@ is coming.
 2. Run `htmi serve`, open the page from the link it prints, and comment on any element.
 3. Ask: "Take care of my HTMi comments."
 
-To share a page, ask your agent to publish it as an issue or as a pull request
-description. With the Chrome extension, everyone sees the page on GitHub and comments with
-GitHub's own Comment button; your agent brings those comments back.
+To share a page on GitHub, it goes into an issue or pull request description as one fenced
+`html` block; Hermes does this with `htmi_publish_description`. With the Chrome extension,
+everyone sees the page on GitHub and comments with GitHub's own Comment button, and
+`htmi github pull` (or `htmi_pull_comments` in Hermes) brings those comments back.
 
 ## Learn more
 

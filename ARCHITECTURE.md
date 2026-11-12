@@ -177,6 +177,14 @@ long introduction is a change.
   prepared text into GitHub's comment box; the person posts it.
 - Element keys in the view carry a nonce that is fresh per build, so attributes an
   author wrote cannot stand in for HTMi's.
-- Asset and source paths are confined to the repository, including through symlinks.
+- Document, asset and source paths are confined to the repository, including through
+  symlinks (`confinedPath` in `src/core/revision.ts`). A document is checked when it is
+  read and again at the moment an edit is written.
+- `git` and `gh` run with a minimal environment (`src/core/env.ts`): system basics,
+  locale, temporary and XDG folders, proxy and certificate settings, `GH_*`,
+  `GITHUB_TOKEN` and `GIT_*`. Secrets in the caller's environment are not passed on.
+- The Hermes plugin works on GitHub only in the repository's origin and the repositories
+  the person lists, and Hermes asks the person before each issue it creates and each
+  description it replaces or edits (`hermes/policy.py`, a `pre_tool_call` hook).
 - Inline icons are reduced to plain geometry; anything else is embedded as an image,
   where browsers run no script.
