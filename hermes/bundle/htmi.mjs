@@ -22679,13 +22679,69 @@ var init_context = __esm({
   }
 });
 
+// src/core/env.ts
+function childEnv(source = process.env) {
+  const env = {};
+  for (const [name, value] of Object.entries(source)) {
+    if (value !== void 0 && (NAMES.has(name) || PREFIXES.some((p) => name.startsWith(p)))) env[name] = value;
+  }
+  return env;
+}
+var NAMES, PREFIXES;
+var init_env = __esm({
+  "src/core/env.ts"() {
+    "use strict";
+    NAMES = /* @__PURE__ */ new Set([
+      "PATH",
+      "HOME",
+      "USER",
+      "LOGNAME",
+      "LANG",
+      "LANGUAGE",
+      "TZ",
+      "TMPDIR",
+      "TEMP",
+      "TMP",
+      "XDG_CONFIG_HOME",
+      "XDG_CACHE_HOME",
+      "XDG_DATA_HOME",
+      "XDG_STATE_HOME",
+      "XDG_RUNTIME_DIR",
+      "SSL_CERT_FILE",
+      "SSL_CERT_DIR",
+      "NODE_EXTRA_CA_CERTS",
+      "HTTPS_PROXY",
+      "HTTP_PROXY",
+      "NO_PROXY",
+      "ALL_PROXY",
+      "https_proxy",
+      "http_proxy",
+      "no_proxy",
+      "all_proxy",
+      "GITHUB_TOKEN",
+      "GITHUB_ENTERPRISE_TOKEN",
+      "NO_COLOR",
+      "SystemRoot",
+      "USERPROFILE",
+      "APPDATA",
+      "LOCALAPPDATA"
+    ]);
+    PREFIXES = ["LC_", "GH_", "GIT_"];
+  }
+});
+
 // src/core/revision.ts
 import { execFileSync } from "node:child_process";
 import { existsSync as existsSync2, realpathSync, statSync } from "node:fs";
-import { dirname as dirname2, relative, resolve, sep } from "node:path";
+import { dirname as dirname2, join as join2, relative, resolve, sep } from "node:path";
 function git(cwd, args2) {
   try {
-    return execFileSync("git", args2, { cwd, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim();
+    return execFileSync("git", args2, {
+      cwd,
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "ignore"],
+      env: childEnv()
+    }).trim();
   } catch {
     return null;
   }
@@ -22715,6 +22771,21 @@ function repoRelative(root2, absolute) {
   if (rel === "" || rel.startsWith("..") || rel.startsWith(sep) || /^[A-Za-z]:/.test(rel)) return null;
   return rel.split(sep).join("/");
 }
+function confinedPath(root2, path) {
+  const absolute = join2(root2, path);
+  const rel = repoRelative(root2, absolute);
+  if (!rel) return null;
+  let existing = absolute;
+  while (!existsSync2(existing)) {
+    const parent = dirname2(existing);
+    if (parent === existing) return null;
+    existing = parent;
+  }
+  const realRoot = realpathSync(root2);
+  const real = realpathSync(existing);
+  if (real !== realRoot && !repoRelative(realRoot, real)) return null;
+  return rel;
+}
 function headCommit(root2) {
   return git(root2, ["rev-parse", "--verify", "-q", "HEAD"]);
 }
@@ -22734,6 +22805,7 @@ function resolveCommit(root2, rev) {
 function readAtCommit(root2, commit, path) {
   try {
     return execFileSync("git", ["show", `${commit}:${path}`], {
+      env: childEnv(),
       cwd: root2,
       encoding: "utf8",
       stdio: ["ignore", "pipe", "ignore"],
@@ -22762,13 +22834,14 @@ function repoRevision(root2) {
 var init_revision = __esm({
   "src/core/revision.ts"() {
     "use strict";
+    init_env();
   }
 });
 
 // src/core/assets.ts
 import { existsSync as existsSync3, readFileSync as readFileSync2, realpathSync as realpathSync2 } from "node:fs";
 import { createRequire } from "node:module";
-import { dirname as dirname3, extname, join as join2, resolve as resolve2 } from "node:path";
+import { dirname as dirname3, extname, join as join3, resolve as resolve2 } from "node:path";
 function mediaTypeFor(path) {
   return MEDIA_TYPES[extname(path).toLowerCase()];
 }
@@ -22777,7 +22850,7 @@ function resolveAsset(ref, repoRoot, docDir) {
   if (/^[a-z][a-z0-9+.-]*:/i.test(ref)) {
     return { ref, kind: "file", error: "remote and data URLs are not embedded; use a file inside the repository" };
   }
-  const absolute = ref.startsWith("/") ? join2(repoRoot, ref) : resolve2(docDir, ref);
+  const absolute = ref.startsWith("/") ? join3(repoRoot, ref) : resolve2(docDir, ref);
   const mediaType = mediaTypeFor(absolute);
   if (!mediaType) return { ref, kind: "file", error: `unsupported image type "${extname(absolute) || "none"}"` };
   const lexical = repoRelative(repoRoot, absolute);
@@ -22800,8 +22873,8 @@ function resolveLucide(ref, repoRoot) {
       error: "lucide-static is not installed; run `npm install lucide-static` to use lucide: icons"
     };
   }
-  const file2 = join2(pkgDir, "icons", `${icon}.svg`);
-  const version2 = JSON.parse(readFileSync2(join2(pkgDir, "package.json"), "utf8")).version;
+  const file2 = join3(pkgDir, "icons", `${icon}.svg`);
+  const version2 = JSON.parse(readFileSync2(join3(pkgDir, "package.json"), "utf8")).version;
   if (!existsSync3(file2)) {
     return {
       ref,
@@ -22822,7 +22895,7 @@ function resolveLucide(ref, repoRoot) {
   };
 }
 function findPackageDir(name, repoRoot) {
-  for (const base2 of [join2(repoRoot, "package.json"), import.meta.url]) {
+  for (const base2 of [join3(repoRoot, "package.json"), import.meta.url]) {
     try {
       return dirname3(createRequire(base2).resolve(`${name}/package.json`));
     } catch {
@@ -22834,9 +22907,9 @@ function readAsset(asset, repoRoot) {
   if (asset.error) return null;
   if (asset.kind === "library" && asset.library) {
     const pkgDir = findPackageDir("lucide-static", repoRoot);
-    return pkgDir ? readFileSync2(join2(pkgDir, "icons", `${asset.library.icon}.svg`)) : null;
+    return pkgDir ? readFileSync2(join3(pkgDir, "icons", `${asset.library.icon}.svg`)) : null;
   }
-  return asset.path ? readFileSync2(join2(repoRoot, asset.path)) : null;
+  return asset.path ? readFileSync2(join3(repoRoot, asset.path)) : null;
 }
 function assetDataUri(asset, repoRoot) {
   const bytes = readAsset(asset, repoRoot);
@@ -23413,9 +23486,11 @@ var init_mermaid = __esm({
 
 // src/core/document.ts
 import { existsSync as existsSync4, readFileSync as readFileSync3 } from "node:fs";
-import { basename, dirname as dirname4, extname as extname2, join as join3 } from "node:path";
+import { basename, dirname as dirname4, extname as extname2, join as join4 } from "node:path";
 function readDocumentSource(options) {
-  const { repoRoot, path } = options;
+  const { repoRoot } = options;
+  const path = confinedPath(repoRoot, options.path);
+  if (!path) throw new DocumentError(`${options.path} is outside the repository`);
   let content;
   let revision;
   if (options.rev) {
@@ -23426,12 +23501,12 @@ function readDocumentSource(options) {
     content = atCommit;
     revision = { commit, state: "commit", label: commit.slice(0, 7) };
   } else {
-    const absolute = join3(repoRoot, path);
+    const absolute = join4(repoRoot, path);
     if (!existsSync4(absolute)) throw new DocumentError(`${path} not found`);
     content = readFileSync3(absolute, "utf8");
     revision = workingRevision(repoRoot, path);
   }
-  return { content, revision };
+  return { content, revision, path };
 }
 function isHtmlPath(path) {
   return /\.html?$/i.test(path);
@@ -23448,7 +23523,7 @@ function imageTargetId(sectionId, src, occurrence) {
 }
 function buildMarkdownModel(content, path, repoRoot, revision) {
   const scan = scanMarkdown(content);
-  const docDir = dirname4(join3(repoRoot, path));
+  const docDir = dirname4(join4(repoRoot, path));
   const model = {
     schemaVersion: 1,
     documentId: scan.declaredId?.id ?? derivedDocumentId(path),
@@ -23754,7 +23829,7 @@ function resolveSourceLink(ref, repoRoot, docDir) {
   if (!m2) return { ref, exists: false, error: "expected path or path#L10-L20" };
   if (/^[a-z][a-z0-9+.-]*:/i.test(m2[1]))
     return { ref, exists: false, error: "URLs are not source links; use a repository path" };
-  const absolute = m2[1].startsWith("/") ? join3(repoRoot, m2[1]) : join3(docDir, m2[1]);
+  const absolute = m2[1].startsWith("/") ? join4(repoRoot, m2[1]) : join4(docDir, m2[1]);
   const rel = repoRelative(repoRoot, absolute);
   if (!rel) return { ref, exists: false, error: "path is outside the repository" };
   const lines = m2[2] ? { start: Number(m2[2]), end: Number(m2[3] ?? m2[2]) } : void 0;
@@ -32468,7 +32543,7 @@ var init_dist2 = __esm({
 
 // src/core/html.ts
 import { existsSync as existsSync5, readFileSync as readFileSync4, realpathSync as realpathSync3 } from "node:fs";
-import { dirname as dirname5, join as join4, resolve as resolve3 } from "node:path";
+import { dirname as dirname5, join as join5, resolve as resolve3 } from "node:path";
 function attr(el, name) {
   return el.attrs.find((a) => a.name === name)?.value;
 }
@@ -32531,7 +32606,7 @@ function meaningfulAttrs(el) {
 function buildHtmlModel(content, path, repoRoot, revision) {
   const tree = parse3(content, { sourceCodeLocationInfo: true });
   const lines = splitLines(content);
-  const docDir = dirname5(join4(repoRoot, path));
+  const docDir = dirname5(join5(repoRoot, path));
   const diagnostics = [];
   const coverage = [];
   const sections = [];
@@ -32581,9 +32656,9 @@ function buildHtmlModel(content, path, repoRoot, revision) {
     const key = `${dep.kind}:${dep.path ?? dep.ref}`;
     if (!dependencies.has(key)) dependencies.set(key, { ...dep, line });
     if (dep.status === "ok" && dep.kind === "stylesheet" && dep.path) {
-      const css = readFileSync4(join4(repoRoot, dep.path), "utf8");
+      const css = readFileSync4(join5(repoRoot, dep.path), "utf8");
       for (const url2 of cssUrls(css))
-        addDependency(url2, /\.(woff2?|ttf|otf)$/i.test(url2) ? "font" : "image", dirname5(join4(repoRoot, dep.path)));
+        addDependency(url2, /\.(woff2?|ttf|otf)$/i.test(url2) ? "font" : "image", dirname5(join5(repoRoot, dep.path)));
     }
   };
   const memo2 = /* @__PURE__ */ new Map();
@@ -33160,7 +33235,7 @@ function resolveDependency(ref, kind, repoRoot, baseDir) {
   if (/^(https?:)?\/\//i.test(clean)) return { ref: clean, kind, status: "remote" };
   if (/^[a-z][a-z0-9+.-]*:/i.test(clean)) return { ref: clean, kind, status: "unsupported" };
   const pathPart = decodeURIComponentSafe(clean.replace(/[?#].*$/, ""));
-  const absolute = pathPart.startsWith("/") ? join4(repoRoot, pathPart) : resolve3(baseDir, pathPart);
+  const absolute = pathPart.startsWith("/") ? join5(repoRoot, pathPart) : resolve3(baseDir, pathPart);
   const lexical = repoRelative(repoRoot, absolute);
   if (!lexical) return { ref: clean, kind, status: "outside" };
   if (!existsSync5(absolute)) return { ref: clean, kind, path: lexical, status: "missing" };
@@ -33313,7 +33388,7 @@ var init_html2 = __esm({
 
 // src/core/html-edit.ts
 import { existsSync as existsSync6, readFileSync as readFileSync5, realpathSync as realpathSync4 } from "node:fs";
-import { dirname as dirname6, join as join5, resolve as resolve4 } from "node:path";
+import { dirname as dirname6, join as join6, resolve as resolve4 } from "node:path";
 function fail(reason, message, target) {
   throw new EditConflict(
     reason,
@@ -33523,7 +33598,7 @@ function planHtmlEdit(doc, repoRoot, op) {
         fail("invalid", `${name} cannot use a javascript:, vbscript: or data: URL`);
       }
       if (name === "src" && el.tagName === "img" && !/^https?:/i.test(op.value)) {
-        const asset = resolveAsset(op.value, repoRoot, dirname6(join5(repoRoot, doc.path)));
+        const asset = resolveAsset(op.value, repoRoot, dirname6(join6(repoRoot, doc.path)));
         if (asset.error) fail("invalid", `src "${op.value}": ${asset.error}`);
       }
       const loc = el.sourceCodeLocation;
@@ -33655,7 +33730,7 @@ function editableDependency(doc, repoRoot, path) {
   return real;
 }
 function fileDigest(repoRoot, path) {
-  return digestOf(readFileSync5(join5(repoRoot, path)));
+  return digestOf(readFileSync5(join6(repoRoot, path)));
 }
 var EditConflict, SETTABLE, TEXT_FILE;
 var init_html_edit = __esm({
@@ -33682,8 +33757,8 @@ var init_html_edit = __esm({
 
 // src/core/load.ts
 function loadAnyDocument(options) {
-  const { content, revision } = readDocumentSource(options);
-  return buildAnyModel(content, options.path, options.repoRoot, revision);
+  const { content, revision, path } = readDocumentSource(options);
+  return buildAnyModel(content, path, options.repoRoot, revision);
 }
 function buildAnyModel(content, path, repoRoot, revision) {
   return isHtmlPath(path) ? buildHtmlModel(content, path, repoRoot, revision) : buildMarkdownModel(content, path, repoRoot, revision);
@@ -33698,7 +33773,7 @@ var init_load = __esm({
 
 // src/core/operations.ts
 import { readFileSync as readFileSync6, renameSync, writeFileSync } from "node:fs";
-import { join as join6 } from "node:path";
+import { join as join7 } from "node:path";
 function parseOperation(input2) {
   const parsed = OperationSchema.safeParse(input2);
   if (parsed.success) return parsed.data;
@@ -33743,7 +33818,11 @@ function applyOperation(doc, repoRoot, input2) {
       message: `${doc.path} is a description on GitHub, not a file; it is written through the GitHub adapter`
     };
   }
-  const file2 = join6(repoRoot, result.path);
+  const confined = confinedPath(repoRoot, result.path);
+  if (!confined) {
+    return { ok: false, reason: "invalid", message: `${result.path} is outside the repository; nothing was written` };
+  }
+  const file2 = join7(repoRoot, confined);
   const onDisk = digestOf(readFileSync6(file2, "utf8"));
   if (onDisk !== result.beforeDigest) {
     return {
@@ -33801,7 +33880,7 @@ function planFileEdit(doc, repoRoot, op) {
     if (error62 instanceof EditConflict) fail2(error62.reason, error62.message);
     throw error62;
   }
-  const before = readFileSync6(join6(repoRoot, path), "utf8");
+  const before = readFileSync6(join7(repoRoot, path), "utf8");
   const digest = fileDigest(repoRoot, path);
   if (digest !== op.expectedFileDigest) {
     fail2("stale-document", `${path} changed since the operation was prepared`, { documentDigest: doc.digest });
@@ -34150,6 +34229,7 @@ var Digest, TargetId, NodeId, Value, SHAPE_NAMES, common, TargetKey, OperationSc
 var init_operations = __esm({
   "src/core/operations.ts"() {
     "use strict";
+    init_revision();
     init_zod();
     init_digest();
     init_document();
@@ -39810,7 +39890,7 @@ var require_util = __commonJS({
       return path;
     });
     exports.normalize = normalize2;
-    function join13(aRoot, aPath) {
+    function join14(aRoot, aPath) {
       if (aRoot === "") {
         aRoot = ".";
       }
@@ -39842,7 +39922,7 @@ var require_util = __commonJS({
       }
       return joined;
     }
-    exports.join = join13;
+    exports.join = join14;
     exports.isAbsolute = function(aPath) {
       return aPath.charAt(0) === "/" || urlRegexp.test(aPath);
     };
@@ -40056,7 +40136,7 @@ var require_util = __commonJS({
             parsed.path = parsed.path.substring(0, index + 1);
           }
         }
-        sourceURL = join13(urlGenerate(parsed), sourceURL);
+        sourceURL = join14(urlGenerate(parsed), sourceURL);
       }
       return normalize2(sourceURL);
     }
@@ -41530,7 +41610,7 @@ var require_previous_map = __commonJS({
   "node_modules/postcss/lib/previous-map.js"(exports, module) {
     "use strict";
     var { existsSync: existsSync12, readFileSync: readFileSync13, realpathSync: realpathSync7 } = __require("fs");
-    var { dirname: dirname12, isAbsolute, join: join13, relative: relative2, sep: sep2 } = __require("path");
+    var { dirname: dirname12, isAbsolute, join: join14, relative: relative2, sep: sep2 } = __require("path");
     var { SourceMapConsumer, SourceMapGenerator } = require_source_map();
     function realPath(path) {
       try {
@@ -41645,7 +41725,7 @@ var require_previous_map = __commonJS({
           return this.decodeInline(this.annotation);
         } else if (this.annotation) {
           let map2 = this.annotation;
-          if (file2) map2 = join13(dirname12(file2), map2);
+          if (file2) map2 = join14(dirname12(file2), map2);
           let unknown2 = this.loadFile(map2, file2, false);
           if (unknown2) {
             try {
@@ -45821,7 +45901,7 @@ var init_postcss = __esm({
 
 // src/render/html-projection.ts
 import { existsSync as existsSync7, readFileSync as readFileSync7, realpathSync as realpathSync5 } from "node:fs";
-import { dirname as dirname7, extname as extname3, join as join7, resolve as resolve5 } from "node:path";
+import { dirname as dirname7, extname as extname3, join as join8, resolve as resolve5 } from "node:path";
 function attrName(a) {
   return a.prefix ? `${a.prefix}:${a.name}` : a.name;
 }
@@ -45842,7 +45922,7 @@ function projectHtml(doc, repoRoot, options) {
     notes.push({ what, consequence });
   };
   const maxAsset = options.maxAsset ?? 4 * 1024 * 1024;
-  const docDir = dirname7(join7(repoRoot, doc.path));
+  const docDir = dirname7(join8(repoRoot, doc.path));
   const tree = parse3(doc.content, { sourceCodeLocationInfo: true });
   const keyAt = /* @__PURE__ */ new Map();
   const sectionAt = /* @__PURE__ */ new Map();
@@ -45861,7 +45941,7 @@ function projectHtml(doc, repoRoot, options) {
       decoded = decodeURIComponent(clean2);
     } catch {
     }
-    const absolute = decoded.startsWith("/") ? join7(repoRoot, decoded) : resolve5(baseDir, decoded);
+    const absolute = decoded.startsWith("/") ? join8(repoRoot, decoded) : resolve5(baseDir, decoded);
     if (!repoRelative(repoRoot, absolute) || !existsSync7(absolute)) return null;
     const real = realpathSync5(absolute);
     return repoRelative(realpathSync5(repoRoot), real) ? real : null;
@@ -50123,7 +50203,7 @@ var init_svg = __esm({
 // src/render/review-page.ts
 import { createHash as createHash2, randomBytes as randomBytes2 } from "node:crypto";
 import { readFileSync as readFileSync8 } from "node:fs";
-import { dirname as dirname8, join as join8 } from "node:path";
+import { dirname as dirname8, join as join9 } from "node:path";
 function clientFile(name) {
   return readFileSync8(new URL(name, clientDir), "utf8");
 }
@@ -50134,7 +50214,7 @@ function embedJson(value) {
   return JSON.stringify(value).replace(/</g, "\\u003c").replace(/>/g, "\\u003e").replace(/&/g, "\\u0026");
 }
 function renderProse(doc, repoRoot, sectionId, markdown, notes) {
-  const docDir = dirname8(join8(repoRoot, doc.path));
+  const docDir = dirname8(join9(repoRoot, doc.path));
   const seen = /* @__PURE__ */ new Map();
   const marked = new B({ gfm: true });
   marked.use({
@@ -50444,7 +50524,7 @@ var init_review_page = __esm({
 // src/github/github.ts
 import { execFileSync as execFileSync2 } from "node:child_process";
 import { existsSync as existsSync8, mkdirSync as mkdirSync2, readFileSync as readFileSync9, writeFileSync as writeFileSync2 } from "node:fs";
-import { dirname as dirname9, join as join9 } from "node:path";
+import { dirname as dirname9, join as join10 } from "node:path";
 function gh(args2, input2) {
   const bin = process.env.HTMI_GH ?? "gh";
   try {
@@ -50452,7 +50532,8 @@ function gh(args2, input2) {
       encoding: "utf8",
       input: input2,
       stdio: ["pipe", "pipe", "pipe"],
-      maxBuffer: 64 * 1024 * 1024
+      maxBuffer: 64 * 1024 * 1024,
+      env: childEnv()
     });
   } catch (error62) {
     const e = error62;
@@ -50502,7 +50583,8 @@ function repoFromGit(root2) {
     const url2 = execFileSync2("git", ["remote", "get-url", "origin"], {
       cwd: root2,
       encoding: "utf8",
-      stdio: ["ignore", "pipe", "ignore"]
+      stdio: ["ignore", "pipe", "ignore"],
+      env: childEnv()
     }).trim();
     const m2 = /github\.com[:/]([\w.-]+)\/([\w.-]+?)(?:\.git)?$/.exec(url2);
     return m2 ? `${m2[1]}/${m2[2]}` : null;
@@ -50527,7 +50609,7 @@ function createIssueComment(repo, issue2, body) {
   return api("POST", `repos/${repo}/issues/${issue2}/comments`, { body });
 }
 function statePath(root2) {
-  return join9(root2, ".htmi", "github.json");
+  return join10(root2, ".htmi", "github.json");
 }
 function readState(root2) {
   const file2 = statePath(root2);
@@ -50809,6 +50891,7 @@ var API_VERSION, GitHubError, PublishStateSchema;
 var init_github = __esm({
   "src/github/github.ts"() {
     "use strict";
+    init_env();
     init_zod();
     init_annotations();
     init_digest();
@@ -50903,10 +50986,10 @@ var init_description = __esm({
 
 // src/core/workspace.ts
 import { existsSync as existsSync9, readFileSync as readFileSync10 } from "node:fs";
-import { join as join10 } from "node:path";
+import { join as join11 } from "node:path";
 function openWorkspace(cwd) {
   const root2 = findRepoRoot(cwd);
-  const file2 = join10(root2, ".htmi", "config.json");
+  const file2 = join11(root2, ".htmi", "config.json");
   let config2 = {};
   if (existsSync9(file2)) {
     const parsed = ConfigSchema.safeParse(JSON.parse(readFileSync10(file2, "utf8")));
@@ -50929,7 +51012,7 @@ function globToRegExp(glob) {
   return new RegExp(`^${out2}$`);
 }
 function discoverDocuments(ws) {
-  const files = listRepoFiles(ws.root, [".md", ".html", ".htm"]);
+  const files = listRepoFiles(ws.root, [".md", ".html", ".htm"]).filter((f) => confinedPath(ws.root, f) === f);
   const excluded = (ws.config.exclude ?? []).map(globToRegExp);
   const kept = files.filter((f) => !excluded.some((p) => p.test(f)));
   if (ws.config.documents?.length) {
@@ -50939,7 +51022,7 @@ function discoverDocuments(ws) {
   return kept.filter((f) => {
     if (NOT_DOCUMENTS.test(f)) return false;
     try {
-      const text2 = readFileSync10(join10(ws.root, f), "utf8");
+      const text2 = readFileSync10(join11(ws.root, f), "utf8");
       if (GENERATED.test(text2)) return false;
       return /\.html?$/i.test(f) || MARKDOWN_MARKERS.test(text2);
     } catch {
@@ -50950,7 +51033,7 @@ function discoverDocuments(ws) {
 function findDocument(ws, query, rev) {
   const asPath = query.replace(/^\.\//, "");
   const direct = asPath.startsWith("path:") ? asPath.slice(5) : asPath;
-  if (existsSync9(join10(ws.root, direct)) || rev) {
+  if (existsSync9(join11(ws.root, direct)) || rev) {
     try {
       return loadAnyDocument({ repoRoot: ws.root, path: direct, rev });
     } catch (error62) {
@@ -51471,7 +51554,7 @@ __export(serve_exports, {
 import { randomBytes as randomBytes3, timingSafeEqual } from "node:crypto";
 import { existsSync as existsSync10, readFileSync as readFileSync11, realpathSync as realpathSync6, statSync as statSync2, unwatchFile, watchFile } from "node:fs";
 import { createServer } from "node:http";
-import { dirname as dirname10, extname as extname4, join as join11, normalize } from "node:path";
+import { dirname as dirname10, extname as extname4, join as join12, normalize } from "node:path";
 async function startServer(options) {
   const { ws } = options;
   const token = randomBytes3(24).toString("base64url");
@@ -51516,9 +51599,9 @@ data: {}
         throw new HttpError(400, "malformed document reference");
       }
       const doc = loadDoc(ref);
-      if (!doc.host) watch(join11(ws.root, doc.path), "document", doc.path);
+      if (!doc.host) watch(join12(ws.root, doc.path), "document", doc.path);
       for (const dep of doc.dependencies ?? []) {
-        if (dep.path && dep.status === "ok") watch(join11(ws.root, dep.path), "document", doc.path);
+        if (dep.path && dep.status === "ok") watch(join12(ws.root, dep.path), "document", doc.path);
       }
       watch(annotationsPath(ws.root), "annotations");
       const page = buildReviewPage({
@@ -51568,7 +51651,7 @@ data: {}
     } catch {
       throw new HttpError(400, "malformed path");
     }
-    const absolute = join11(ws.root, rel);
+    const absolute = join12(ws.root, rel);
     const lexical = repoRelative(ws.root, absolute);
     if (!lexical || lexical.split("/").some((part) => part.startsWith(".")) || !existsSync10(absolute))
       throw new HttpError(404, "not found");
@@ -69376,7 +69459,7 @@ init_github();
 init_review_page();
 init_documents();
 import { appendFileSync as appendFileSync2, existsSync as existsSync11, mkdirSync as mkdirSync3, readFileSync as readFileSync12, writeFileSync as writeFileSync3 } from "node:fs";
-import { dirname as dirname11, join as join12, resolve as resolve6 } from "node:path";
+import { dirname as dirname11, join as join13, resolve as resolve6 } from "node:path";
 import { parseArgs } from "node:util";
 
 // src/cli/instructions.ts
@@ -69883,7 +69966,7 @@ ${result.outputTail.split("\n").slice(-8).join("\n")}`
         version: VERSION
       });
       const file2 = resolve6(
-        str(values, "out") ?? join12(ws.root, ".htmi", "build", `${doc.documentId.replace(/[^\w.-]+/g, "_")}.html`)
+        str(values, "out") ?? join13(ws.root, ".htmi", "build", `${doc.documentId.replace(/[^\w.-]+/g, "_")}.html`)
       );
       mkdirSync3(dirname11(file2), { recursive: true });
       writeFileSync3(file2, html);
@@ -69982,10 +70065,10 @@ ${Math.round(result.bytes / 1024)} KB, ${result.threads} comment(s)${result.loca
     }
     case "init": {
       const { values } = args(rest, {});
-      mkdirSync3(join12(ws.root, ".htmi"), { recursive: true });
-      const config2 = join12(ws.root, ".htmi", "config.json");
+      mkdirSync3(join13(ws.root, ".htmi"), { recursive: true });
+      const config2 = join13(ws.root, ".htmi", "config.json");
       if (!existsSync11(config2)) writeFileSync3(config2, "{}\n");
-      const attributes = join12(ws.root, ".gitattributes");
+      const attributes = join13(ws.root, ".gitattributes");
       const line = ".htmi/annotations.jsonl merge=union";
       const current = existsSync11(attributes) ? readFileSync12(attributes, "utf8") : "";
       if (!current.split("\n").includes(line))
@@ -69994,7 +70077,7 @@ ${Math.round(result.bytes / 1024)} KB, ${result.threads} comment(s)${result.loca
       out(
         !!values.json,
         { root: ws.root, config: config2, attributes },
-        () => `Set up ${join12(ws.root, ".htmi")}.
+        () => `Set up ${join13(ws.root, ".htmi")}.
 Comments are stored in .htmi/annotations.jsonl; .gitattributes now merges it line by line.
 
 Add this to AGENTS.md or CLAUDE.md so your coding agent knows how to read feedback:

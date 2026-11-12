@@ -1,4 +1,5 @@
 import { readFileSync, renameSync, writeFileSync } from "node:fs";
+import { confinedPath } from "./revision.js";
 import { join } from "node:path";
 import { z } from "zod";
 import { digestOf } from "./digest.js";
@@ -248,7 +249,13 @@ export function applyOperation(doc: DocModel, repoRoot: string, input: unknown):
       message: `${doc.path} is a description on GitHub, not a file; it is written through the GitHub adapter`,
     };
   }
-  const file = join(repoRoot, result.path);
+  // Checked again at the moment of writing: never write outside the repository, also not
+  // through a symbolic link that appeared after the document was read.
+  const confined = confinedPath(repoRoot, result.path);
+  if (!confined) {
+    return { ok: false, reason: "invalid", message: `${result.path} is outside the repository; nothing was written` };
+  }
+  const file = join(repoRoot, confined);
   const onDisk = digestOf(readFileSync(file, "utf8"));
   if (onDisk !== result.beforeDigest) {
     return {

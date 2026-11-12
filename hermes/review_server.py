@@ -51,6 +51,7 @@ def repo_root(start: Path) -> Path:
             text=True,
             timeout=10,
             stdin=subprocess.DEVNULL,
+            env=runner.child_env(),
             check=False,
         )
         if done.returncode == 0 and done.stdout.strip():
@@ -134,7 +135,7 @@ def start(root: Path, wait: float = 15) -> dict:
         process = subprocess.Popen(
             [runner.node_executable() or "node", str(runner.ENGINE), "serve", "--frame-ancestors", LOCAL_FRAMES],
             cwd=str(root),
-            env=runner.node_env(),
+            env=runner.child_env(),
             stdin=subprocess.DEVNULL,
             stdout=out,
             stderr=subprocess.STDOUT,

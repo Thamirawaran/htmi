@@ -1,4 +1,5 @@
 import { execFileSync } from "node:child_process";
+import { childEnv } from "../core/env.js";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { z } from "zod";
@@ -55,6 +56,7 @@ function gh(args: string[], input?: string): string {
       input,
       stdio: ["pipe", "pipe", "pipe"],
       maxBuffer: 64 * 1024 * 1024,
+      env: childEnv(),
     });
   } catch (error) {
     const e = error as { stderr?: string; stdout?: string; status?: number; code?: string };
@@ -111,6 +113,7 @@ export function repoFromGit(root: string): string | null {
       cwd: root,
       encoding: "utf8",
       stdio: ["ignore", "pipe", "ignore"],
+      env: childEnv(),
     }).trim();
     const m = /github\.com[:/]([\w.-]+)\/([\w.-]+?)(?:\.git)?$/.exec(url);
     return m ? `${m[1]}/${m[2]}` : null;

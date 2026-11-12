@@ -187,19 +187,20 @@ PUBLISH_DESCRIPTION = {
         "Use this rather than gh for that: the description must be the page in one fenced html "
         "block, which this does exactly, so people see the page as designed and their comments "
         "come back to you. Returns the description's document reference (github:owner/repo#7). "
-        "Ask the person before creating an issue they did not ask for."
+        "Works only in this repository's GitHub origin and the repositories the person listed in "
+        "HTMi's github_repos setting. Hermes asks the person to approve before an issue is created "
+        "or a description replaced; if they decline, do not retry another way."
     ),
     "parameters": {
         "type": "object",
         "properties": {
             "document": {"type": "string", "description": "Path of the HTML file, such as docs/proposal.html."},
-            "repo": {"type": "string", "description": "owner/name; defaults to the origin remote."},
+            "repo": {
+                "type": "string",
+                "description": "owner/name; defaults to the origin remote. Others must be in github_repos.",
+            },
             "title": {"type": "string", "description": "Title of a new issue (or a new title)."},
             "number": {"type": "integer", "description": "An existing issue or pull request to set."},
-            "replace_existing": {
-                "type": "boolean",
-                "description": "Replace a description that is not already an HTML page (only if the person agreed).",
-            },
         },
         "required": ["document"],
     },

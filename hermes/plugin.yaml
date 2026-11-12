@@ -1,5 +1,5 @@
 name: htmi
-version: "0.1.0"
+version: "0.1.1"
 description: >-
   Review HTML and Markdown documents with your agent: comment on the exact element,
   passage, diagram part or image region you see; Hermes is told, reads the comment with
@@ -22,3 +22,13 @@ provides_tools:
   - htmi_open_review
 provides_hooks:
   - pre_llm_call
+  - pre_tool_call
+config_schema:
+  github_repos:
+    type: list
+    default: []
+    label: "Other GitHub repositories"
+    description: >-
+      HTMi works on GitHub only in this repository's origin remote. List any other
+      repositories (owner/name) it may publish to, edit descriptions in and reply in.
+      Hermes still asks you before an issue is created or a description is replaced or edited.

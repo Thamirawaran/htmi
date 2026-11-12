@@ -46,8 +46,26 @@ def node_executable() -> str | None:
     return shutil.which("node")
 
 
-def node_env() -> dict[str, str]:
-    env = dict(os.environ)
+# What the engine, and the git and gh it starts, may see of Hermes's environment. Provider
+# keys and every other secret Hermes holds stay out: only the system basics, locale,
+# temporary folders, where gh and git keep their configuration, network proxies and
+# certificate settings, the variables gh and git document themselves, and HTMI_GH (which gh
+# to run). The engine applies the same list again to the git and gh it starts.
+_ENV_NAMES = frozenset(
+    {
+        "PATH", "HOME", "USER", "LOGNAME", "LANG", "LANGUAGE", "TZ", "TMPDIR", "TEMP", "TMP",
+        "XDG_CONFIG_HOME", "XDG_CACHE_HOME", "XDG_DATA_HOME", "XDG_STATE_HOME", "XDG_RUNTIME_DIR",
+        "SSL_CERT_FILE", "SSL_CERT_DIR", "NODE_EXTRA_CA_CERTS",
+        "HTTPS_PROXY", "HTTP_PROXY", "NO_PROXY", "ALL_PROXY", "https_proxy", "http_proxy", "no_proxy", "all_proxy",
+        "GITHUB_TOKEN", "GITHUB_ENTERPRISE_TOKEN", "HTMI_GH",
+    }
+)  # fmt: skip
+_ENV_PREFIXES = ("LC_", "GH_", "GIT_")
+
+
+def child_env() -> dict[str, str]:
+    """An explicit, minimal environment for every process HTMi starts."""
+    env = {k: v for k, v in os.environ.items() if k in _ENV_NAMES or k.startswith(_ENV_PREFIXES)}
     try:
         from hermes_constants import with_hermes_node_path
 
@@ -70,7 +88,7 @@ def node_problem() -> str | None:
         return "Node.js was not found; HTMi needs Node.js 20.11 or newer"
     try:
         out = subprocess.run(
-            [node, "--version"], capture_output=True, text=True, timeout=10, check=False
+            [node, "--version"], capture_output=True, text=True, timeout=10, check=False, env=child_env()
         ).stdout.strip()
     except (OSError, subprocess.TimeoutExpired) as error:
         return f"could not run {node}: {error}"
@@ -88,7 +106,7 @@ def run(args: list[str], cwd: Path | None = None, timeout: float = 60) -> subpro
         return subprocess.run(
             [node, str(ENGINE), *args],
             cwd=str(cwd or session_cwd()),
-            env=node_env(),
+            env=child_env(),
             capture_output=True,
             text=True,
             timeout=timeout,

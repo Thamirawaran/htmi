@@ -13,7 +13,14 @@ import {
   type MermaidParse,
   type Shape,
 } from "./mermaid.js";
-import { readAtCommit, repoRelative, resolveCommit, workingRevision, type SourceRevision } from "./revision.js";
+import {
+  confinedPath,
+  readAtCommit,
+  repoRelative,
+  resolveCommit,
+  workingRevision,
+  type SourceRevision,
+} from "./revision.js";
 
 export type TargetKind = "diagram" | "node" | "edge" | "group" | "text" | "image" | "element";
 
@@ -204,9 +211,15 @@ export interface LoadOptions {
 
 export class DocumentError extends Error {}
 
-/** Read a document's content and revision, from the working tree or a commit. */
-export function readDocumentSource(options: LoadOptions): { content: string; revision: SourceRevision } {
-  const { repoRoot, path } = options;
+/**
+ * Read a document's content and revision, from the working tree or a commit. The path must
+ * stay inside the repository (also through symbolic links); the returned `path` is its
+ * normalized repository relative form, which callers use from then on.
+ */
+export function readDocumentSource(options: LoadOptions): { content: string; revision: SourceRevision; path: string } {
+  const { repoRoot } = options;
+  const path = confinedPath(repoRoot, options.path);
+  if (!path) throw new DocumentError(`${options.path} is outside the repository`);
   let content: string;
   let revision: SourceRevision;
   if (options.rev) {
@@ -222,7 +235,7 @@ export function readDocumentSource(options: LoadOptions): { content: string; rev
     content = readFileSync(absolute, "utf8");
     revision = workingRevision(repoRoot, path);
   }
-  return { content, revision };
+  return { content, revision, path };
 }
 
 export function isHtmlPath(path: string): boolean {

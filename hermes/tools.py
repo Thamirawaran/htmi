@@ -4,9 +4,10 @@ from __future__ import annotations
 
 import json
 from collections.abc import Callable
+from pathlib import Path
 from typing import Any
 
-from . import publish, review_server, runner
+from . import policy, publish, review_server, runner
 
 AGENT_NAME = "Hermes"
 
@@ -38,6 +39,17 @@ def _guard(handler: Callable[[dict], str]) -> Callable[..., str]:
     return run
 
 
+def _root() -> Path:
+    return review_server.repo_root(runner.session_cwd())
+
+
+def _document(args: dict, name: str = "document") -> str:
+    """A document argument; a GitHub description outside the allowed repositories is refused."""
+    document = _need(args, name)
+    policy.check_document(_root(), document)
+    return document
+
+
 def _need(args: dict, name: str) -> str:
     value = args.get(name)
     if not isinstance(value, str) or not value.strip():
@@ -52,7 +64,7 @@ def list_documents(args: dict) -> str:
 
 @_guard
 def read_document(args: dict) -> str:
-    document = _need(args, "document")
+    document = _document(args)
     if args.get("block"):
         command = ["read", document, "--block", args["block"], *(["--source"] if args.get("source") else [])]
         return _reply(*runner.run_json(command))
@@ -67,7 +79,7 @@ def read_document(args: dict) -> str:
 
 @_guard
 def list_targets(args: dict) -> str:
-    command = ["targets", _need(args, "document")]
+    command = ["targets", _document(args)]
     if args.get("diagram"):
         command += ["--diagram", args["diagram"]]
     return _reply(*runner.run_json(command))
@@ -76,7 +88,8 @@ def list_targets(args: dict) -> str:
 @_guard
 def list_comments(args: dict) -> str:
     status = args.get("status") or "open"
-    command = ["comments", *([args["document"]] if args.get("document") else []), "--status", status]
+    document = _document(args) if args.get("document") else None
+    command = ["comments", *([document] if document else []), "--status", status]
     rows, warnings = runner.run_json(command)
     return _reply(
         {
@@ -89,7 +102,7 @@ def list_comments(args: dict) -> str:
 
 @_guard
 def comment_context(args: dict) -> str:
-    document = _need(args, "document")
+    document = _document(args)
     if not args.get("comment") and not args.get("target"):
         raise ValueError("give a comment id or a target key")
     command = ["context", document]
@@ -104,7 +117,9 @@ def comment_context(args: dict) -> str:
 
 @_guard
 def apply_edit(args: dict) -> str:
-    document = _need(args, "document")
+    # A GitHub description must be in an allowed repository; Hermes also asked the person
+    # before this runs (policy.pre_tool_call), unless it is a dry run.
+    document = _document(args)
     operation = args.get("operation")
     if isinstance(operation, str):
         operation = json.loads(operation)
@@ -120,17 +135,21 @@ def apply_edit(args: dict) -> str:
 @_guard
 def reply(args: dict) -> str:
     comment = _need(args, "comment")
+    # A comment made on a GitHub description is answered where the reviewer is: the reply is
+    # posted to that issue or pull request too (only what is not there yet). That repository
+    # must be an allowed one; this is checked before anything is written.
+    rows, _ = runner.run_json(["comments", "--status", "all"])
+    document = next((r.get("document", "") for r in rows if r.get("id") == comment), "")
+    on_github = policy.description_target(_root(), document) is not None
+    if on_github:
+        policy.check_document(_root(), document)
     command = ["reply", comment, "--text", _need(args, "text"), "--agent", AGENT_NAME]
     if args.get("status"):
         command += ["--status", args["status"]]
     if args.get("revision"):
         command += ["--revision", args["revision"]]
     result, warnings = runner.run_json(command)
-    # A comment made on a GitHub description is answered where the reviewer is: the reply is
-    # posted to that issue or pull request too (only what is not there yet).
-    rows, _ = runner.run_json(["comments", "--status", "all"])
-    document = next((r.get("document", "") for r in rows if r.get("id") == comment), "")
-    if document.startswith("github:"):
+    if on_github:
         posted, more = runner.run_json(["github", "post", comment], timeout=120)
         result = {**result, "github": posted}
         warnings += more
@@ -142,14 +161,17 @@ def validate(args: dict) -> str:
     documents = args.get("documents") or []
     if not isinstance(documents, list) or not all(isinstance(d, str) for d in documents):
         raise TypeError("documents must be a list of strings")
+    for document in documents:
+        policy.check_document(_root(), document)
     return _reply(*runner.run_json(["validate", *documents], accept=(0, 3)))
 
 
 @_guard
 def pull_comments(args: dict) -> str:
     document = _need(args, "document")
-    if not document.startswith(("github:", "https://github.com/")):
+    if policy.description_target(_root(), document) is None:
         raise ValueError("htmi_pull_comments is for GitHub descriptions (github:owner/repo#7)")
+    policy.check_document(_root(), document)
     return _reply(*runner.run_json(["github", "pull", document], timeout=120))
 
 
@@ -158,22 +180,20 @@ def publish_description(args: dict) -> str:
     number = args.get("number")
     if number is not None and (not isinstance(number, int) or number <= 0):
         raise ValueError("number must be a positive whole number")
-    root = review_server.repo_root(runner.session_cwd())
-    return _reply(
-        publish.publish(
-            root,
-            _need(args, "document"),
-            args.get("repo"),
-            args.get("title"),
-            number,
-            bool(args.get("replace_existing")),
-        )
-    )
+    root = _root()
+    repo = (args.get("repo") or "").strip() or publish.origin_repo(root)
+    if not repo:
+        raise runner.EngineError("this repository has no GitHub origin remote to publish to")
+    # Only allowed repositories; Hermes asked the person before this runs (policy.pre_tool_call).
+    policy.check_repo(root, repo)
+    return _reply(publish.publish(root, _need(args, "document"), repo, args.get("title"), number))
 
 
 @_guard
 def open_review(args: dict) -> str:
     root = review_server.repo_root(runner.session_cwd())
+    if args.get("document"):
+        policy.check_document(root, args["document"])
     server = review_server.start(root)
     result: dict[str, Any] = {
         "repository": str(root),

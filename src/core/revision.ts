@@ -1,6 +1,7 @@
 import { execFileSync } from "node:child_process";
+import { childEnv } from "./env.js";
 import { existsSync, realpathSync, statSync } from "node:fs";
-import { dirname, relative, resolve, sep } from "node:path";
+import { dirname, join, relative, resolve, sep } from "node:path";
 
 /** Where the content of a document came from. */
 export interface SourceRevision {
@@ -17,7 +18,12 @@ export interface SourceRevision {
 
 function git(cwd: string, args: string[]): string | null {
   try {
-    return execFileSync("git", args, { cwd, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim();
+    return execFileSync("git", args, {
+      cwd,
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "ignore"],
+      env: childEnv(),
+    }).trim();
   } catch {
     return null;
   }
@@ -54,6 +60,29 @@ export function repoRelative(root: string, absolute: string): string | null {
   return rel.split(sep).join("/");
 }
 
+/**
+ * The repository relative form of `path` when the file stays inside the repository, both as
+ * written and after following symbolic links; null when it would escape. A leading "/" means
+ * the repository root. Every document read and every document write goes through this, so a
+ * path such as "../../.env", or a symlink pointing outside, is refused rather than followed.
+ */
+export function confinedPath(root: string, path: string): string | null {
+  const absolute = join(root, path);
+  const rel = repoRelative(root, absolute);
+  if (!rel) return null;
+  // The nearest part of the path that exists decides where it really points.
+  let existing = absolute;
+  while (!existsSync(existing)) {
+    const parent = dirname(existing);
+    if (parent === existing) return null;
+    existing = parent;
+  }
+  const realRoot = realpathSync(root);
+  const real = realpathSync(existing);
+  if (real !== realRoot && !repoRelative(realRoot, real)) return null;
+  return rel;
+}
+
 export function headCommit(root: string): string | null {
   return git(root, ["rev-parse", "--verify", "-q", "HEAD"]);
 }
@@ -79,6 +108,7 @@ export function resolveCommit(root: string, rev: string): string | null {
 export function readAtCommit(root: string, commit: string, path: string): string | null {
   try {
     return execFileSync("git", ["show", `${commit}:${path}`], {
+      env: childEnv(),
       cwd: root,
       encoding: "utf8",
       stdio: ["ignore", "pipe", "ignore"],

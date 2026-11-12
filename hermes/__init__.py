@@ -10,7 +10,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from . import commands, notices, schemas, tools
+from . import commands, notices, policy, schemas, tools
 
 TOOLSET = "htmi"
 
@@ -39,6 +39,10 @@ def register(ctx) -> None:
             description=schema["description"],
         )
     ctx.register_hook("pre_llm_call", notices.pre_llm_call)
+    # GitHub writes: only allowed repositories, and the person approves each create, replace
+    # or edit of a description (policy.py).
+    policy.configure(ctx.get_config)
+    ctx.register_hook("pre_tool_call", policy.pre_tool_call)
     ctx.register_command(
         "htmi",
         commands.handle,

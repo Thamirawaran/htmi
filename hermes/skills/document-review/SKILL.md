@@ -125,7 +125,11 @@ Then run `htmi_validate` on it and fix what it reports.
    `htmi_apply_edit` and `htmi_pull_comments` all accept it, and edits stay inside the
    fence.
 
-Ask before creating an issue or pull request if the person did not ask for one.
+Ask before creating an issue or pull request if the person did not ask for one. HTMi works
+only in this repository's GitHub origin and the repositories the person listed in its
+`github_repos` setting, and Hermes asks the person to approve each issue it creates and
+each description it replaces or edits. If they decline, or a repository is refused, say so
+and do not try another way (no `gh` or other tool around it).
 
 ## Acting on review comments
 

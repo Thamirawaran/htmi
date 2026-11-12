@@ -3,7 +3,7 @@ import { join } from "node:path";
 import { z } from "zod";
 import { loadAnyDocument } from "./load.js";
 import type { DocModel } from "./document.js";
-import { findRepoRoot, listRepoFiles } from "./revision.js";
+import { confinedPath, findRepoRoot, listRepoFiles } from "./revision.js";
 
 export const ConfigSchema = z.object({
   /** Globs (relative to the repository root) of documents HTMi should list, instead of the default rule. */
@@ -68,7 +68,8 @@ const NOT_DOCUMENTS =
  * review pages are views, never documents. Any file can still be opened by path.
  */
 export function discoverDocuments(ws: Workspace): string[] {
-  const files = listRepoFiles(ws.root, [".md", ".html", ".htm"]);
+  // A file that leaves the repository (a symbolic link pointing outside) is never a document.
+  const files = listRepoFiles(ws.root, [".md", ".html", ".htm"]).filter((f) => confinedPath(ws.root, f) === f);
   const excluded = (ws.config.exclude ?? []).map(globToRegExp);
   const kept = files.filter((f) => !excluded.some((p) => p.test(f)));
   if (ws.config.documents?.length) {
