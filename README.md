@@ -30,6 +30,14 @@ speaks MCP, in GitHub issues and pull requests through the Chrome extension, and
 Code. No account and no server. Comments are a file in your repository, or ordinary
 GitHub comments.
 
+## Take the tour
+
+[![The HTMi tour: a vague remark in chat beside a comment pinned to the chart it means](assets/tour.png)](docs/tour.html)
+
+[`docs/tour.html`](docs/tour.html) explains the rest as an HTMi page: the review loop, what
+happens to a comment after an edit, and what your agent gets. On GitHub with the Chrome
+extension it opens as a page you can comment on; without it, GitHub shows its HTML source.
+
 ## Install
 
 No account and no server. Your documents stay ordinary files; comments go in `.htmi/` in

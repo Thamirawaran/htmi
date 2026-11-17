@@ -1,0 +1,764 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>HTMi: a tour</title>
+    <style>
+      /* One reading column; the figures carry the explanation, the text stays short. */
+      :root {
+        --ground: #f4f7fa;
+        --surface: #ffffff;
+        --ink: #14202e;
+        --muted: #56677b;
+        --line: #d4dde7;
+        --accent: #0a74b5;
+        --accent-soft: #e2f0f9;
+        --ok: #1d6f46;
+        --ok-bg: #e2f3e9;
+        --warn: #8a5300;
+        --warn-bg: #fbefd9;
+        --risk: #a8261d;
+        --risk-bg: #fbe4e1;
+        --code-bg: #eef3f8;
+        --sans: system-ui, -apple-system, "Segoe UI", sans-serif;
+        --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --ground: #0d141d;
+          --surface: #141f2b;
+          --ink: #e5ecf4;
+          --muted: #9caec2;
+          --line: #2b3b4d;
+          --accent: #5cc4f2;
+          --accent-soft: #123247;
+          --ok: #74d39f;
+          --ok-bg: #12301f;
+          --warn: #f1b85a;
+          --warn-bg: #36280e;
+          --risk: #ff8d84;
+          --risk-bg: #3b1714;
+          --code-bg: #1b2a3a;
+        }
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        background: var(--ground);
+        color: var(--ink);
+        font: 17px/1.55 var(--sans);
+      }
+      main {
+        max-width: 960px;
+        margin: 0 auto;
+        padding: 40px 24px 64px;
+      }
+      h1,
+      h2 {
+        text-wrap: balance;
+        line-height: 1.2;
+        margin: 0;
+      }
+      h1 {
+        font-size: 34px;
+        letter-spacing: -0.01em;
+      }
+      h2 {
+        font-size: 22px;
+        margin-bottom: 10px;
+      }
+      p,
+      li {
+        max-width: 68ch;
+      }
+      p {
+        margin: 0 0 12px;
+      }
+      a {
+        color: var(--accent);
+      }
+      code {
+        font: 0.88em var(--mono);
+        background: var(--code-bg);
+        color: var(--ink);
+        padding: 1px 4px;
+        border-radius: 5px;
+      }
+      .label {
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--muted);
+        font-weight: 600;
+      }
+      .small {
+        font-size: 15px;
+        color: var(--muted);
+      }
+      header {
+        display: grid;
+        grid-template-columns: 64px 1fr;
+        gap: 6px 20px;
+        align-items: center;
+        padding-bottom: 28px;
+        border-bottom: 1px solid var(--line);
+      }
+      header img {
+        width: 64px;
+        height: 64px;
+        grid-row: span 2;
+      }
+      header .lede {
+        grid-column: 1 / -1;
+        margin-top: 14px;
+        font-size: 19px;
+        max-width: 70ch;
+      }
+      .facts {
+        grid-column: 1 / -1;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 6px;
+        padding: 0;
+        list-style: none;
+      }
+      .facts li {
+        font-size: 14px;
+        border: 1px solid var(--line);
+        background: var(--surface);
+        padding: 3px 12px;
+        border-radius: 999px;
+        color: var(--muted);
+      }
+      section {
+        padding: 36px 0 8px;
+      }
+      figure {
+        margin: 18px 0 8px;
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 18px;
+        overflow-x: auto;
+      }
+      figcaption {
+        font-size: 15px;
+        color: var(--muted);
+        margin-top: 10px;
+      }
+      svg {
+        display: block;
+        max-width: 100%;
+        height: auto;
+        color: var(--muted);
+        font-family: var(--sans);
+      }
+      .d-page {
+        fill: var(--surface);
+        stroke: var(--line);
+        stroke-width: 1.5;
+      }
+      .d-box {
+        fill: var(--surface);
+        stroke: var(--line);
+        stroke-width: 1.5;
+      }
+      .d-chip {
+        fill: var(--ground);
+        stroke: var(--line);
+        stroke-width: 1;
+      }
+      .d-hot {
+        fill: var(--accent-soft);
+        stroke: var(--accent);
+        stroke-width: 2;
+      }
+      .d-bar {
+        fill: var(--line);
+      }
+      .d-bar-hot {
+        fill: var(--accent);
+        opacity: 0.75;
+      }
+      .d-text {
+        fill: var(--ink);
+        font-size: 13px;
+      }
+      .d-strong {
+        fill: var(--ink);
+        font-size: 13px;
+        font-weight: 650;
+      }
+      .d-head {
+        fill: var(--ink);
+        font-size: 14px;
+        font-weight: 650;
+      }
+      .d-note {
+        fill: var(--muted);
+        font-size: 11.5px;
+      }
+      .d-mono {
+        fill: var(--accent);
+        font-size: 12px;
+        font-family: var(--mono);
+      }
+      .d-line {
+        stroke: var(--muted);
+        stroke-width: 1.5;
+        fill: none;
+      }
+      .d-dash {
+        stroke: var(--muted);
+        stroke-width: 1.5;
+        fill: none;
+        stroke-dasharray: 5 4;
+      }
+      .d-pin {
+        fill: var(--accent);
+      }
+      .b-ok {
+        fill: var(--ok-bg);
+      }
+      .t-ok {
+        fill: var(--ok);
+        font-size: 12px;
+        font-weight: 700;
+      }
+      .b-warn {
+        fill: var(--warn-bg);
+      }
+      .t-warn {
+        fill: var(--warn);
+        font-size: 12px;
+        font-weight: 700;
+      }
+      .b-risk {
+        fill: var(--risk-bg);
+      }
+      .t-risk {
+        fill: var(--risk);
+        font-size: 12px;
+        font-weight: 700;
+      }
+      .two {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        margin-top: 14px;
+      }
+      .panel {
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 16px 18px;
+      }
+      .panel h3 {
+        margin: 0 0 8px;
+        font-size: 15px;
+      }
+      .panel ul {
+        margin: 0;
+        padding-left: 18px;
+      }
+      .panel li {
+        margin: 4px 0;
+        font-size: 15.5px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        overflow: hidden;
+        font-size: 15.5px;
+      }
+      th {
+        background: var(--accent-soft);
+        color: var(--ink);
+        text-align: left;
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+      }
+      th,
+      td {
+        padding: 10px 14px;
+        border-bottom: 1px solid var(--line);
+        vertical-align: top;
+      }
+      tr:last-child td {
+        border-bottom: 0;
+      }
+      td:first-child {
+        font-weight: 600;
+        white-space: nowrap;
+      }
+      td:last-child code {
+        white-space: nowrap;
+      }
+      table {
+        min-width: 760px;
+      }
+      .scroll {
+        overflow-x: auto;
+        margin-top: 14px;
+      }
+      pre {
+        margin: 10px 0 0;
+        background: var(--code-bg);
+        color: var(--ink);
+        padding: 12px 16px;
+        border-radius: 8px;
+        overflow-x: auto;
+        font: 14px/1.6 var(--mono);
+      }
+      .invite {
+        margin-top: 12px;
+        background: var(--accent-soft);
+        border: 1.5px solid var(--accent);
+        border-radius: 10px;
+        padding: 18px 22px;
+      }
+      .invite p {
+        margin: 0 0 8px;
+      }
+      .invite p:last-child {
+        margin: 0;
+      }
+      .invite code {
+        background: var(--surface);
+      }
+      #no-extension {
+        margin-top: 10px;
+      }
+      footer {
+        margin-top: 40px;
+        padding-top: 16px;
+        border-top: 1px solid var(--line);
+      }
+      @media (max-width: 720px) {
+        main {
+          padding: 24px 16px 48px;
+        }
+        h1 {
+          font-size: 28px;
+        }
+        .two {
+          grid-template-columns: 1fr;
+        }
+        td:first-child {
+          white-space: normal;
+        }
+        figure svg {
+          min-width: 640px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header id="intro">
+        <img
+          src="data:image/png;base64,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"
+          alt="HTMi logo"
+        />
+        <div class="label">HTMi · a tour</div>
+        <h1>Review your agent's pages on the page itself</h1>
+        <p class="lede" id="lede">
+          Coding agents now explain their work as HTML pages: a diagram of the change, charts, a review guide. HTMi lets
+          you comment on the exact element you mean, hands your agent that one comment with the context it needs, and
+          keeps the comment on its element through the agent's edits, or tells you plainly that it can't.
+        </p>
+        <ul class="facts" id="facts">
+          <li>Open source, MIT</li>
+          <li>No account, no server</li>
+          <li>Hermes Agent, Claude Code, Codex, GitHub, VS Code</li>
+        </ul>
+      </header>
+
+      <section id="problem">
+        <h2>Feedback in chat does not point at anything</h2>
+        <p>
+          A page has three charts. "The second chart looks off" leaves the agent to guess which chart and what is wrong,
+          and after the next edit nobody knows whether the remark still applies. With HTMi the comment sits on the chart
+          itself.
+        </p>
+        <figure id="problem-figure">
+          <svg
+            viewBox="0 0 900 300"
+            role="img"
+            aria-label="On the left, a chat message points vaguely at a page with three charts. On the right, a comment is pinned to the second chart and names it."
+          >
+            <defs>
+              <marker
+                id="ah1"
+                viewBox="0 0 10 10"
+                refX="9"
+                refY="5"
+                markerWidth="7"
+                markerHeight="7"
+                orient="auto-start-reverse"
+              >
+                <path d="M0 0L10 5L0 10z" fill="currentColor" />
+              </marker>
+            </defs>
+            <text class="d-head" x="20" y="22">In chat</text>
+            <rect class="d-page" x="20" y="40" width="230" height="240" rx="8" />
+            <rect class="d-chip" x="36" y="56" width="120" height="10" rx="3" />
+            <g id="chat-charts">
+              <rect class="d-chip" x="36" y="80" width="198" height="54" rx="5" />
+              <rect class="d-bar" x="52" y="104" width="22" height="24" />
+              <rect class="d-bar" x="84" y="94" width="22" height="34" />
+              <rect class="d-bar" x="116" y="112" width="22" height="16" />
+              <rect class="d-chip" x="36" y="146" width="198" height="54" rx="5" />
+              <rect class="d-bar" x="52" y="160" width="22" height="34" />
+              <rect class="d-bar" x="84" y="176" width="22" height="18" />
+              <rect class="d-bar" x="116" y="168" width="22" height="26" />
+              <rect class="d-chip" x="36" y="212" width="198" height="54" rx="5" />
+              <rect class="d-bar" x="52" y="238" width="22" height="22" />
+              <rect class="d-bar" x="84" y="228" width="22" height="32" />
+              <rect class="d-bar" x="116" y="244" width="22" height="16" />
+            </g>
+            <rect class="d-box" x="282" y="96" width="150" height="58" rx="10" />
+            <text class="d-text" x="296" y="120">"the second chart</text>
+            <text class="d-text" x="296" y="138">looks off"</text>
+            <path class="d-dash" d="M282 125 C260 125 255 110 238 107" marker-end="url(#ah1)" />
+            <path class="d-dash" d="M282 130 C262 140 256 166 238 172" marker-end="url(#ah1)" />
+            <path class="d-dash" d="M290 154 C276 200 262 236 238 238" marker-end="url(#ah1)" />
+            <text class="d-note" x="304" y="190">which one?</text>
+            <text class="d-note" x="304" y="206">and what about it?</text>
+
+            <line x1="452" y1="30" x2="452" y2="284" stroke="var(--line)" stroke-width="1" />
+
+            <text class="d-head" x="476" y="22">On the page, with HTMi</text>
+            <rect class="d-page" x="476" y="40" width="230" height="240" rx="8" />
+            <rect class="d-chip" x="492" y="56" width="120" height="10" rx="3" />
+            <rect class="d-chip" x="492" y="80" width="198" height="54" rx="5" />
+            <rect class="d-bar" x="508" y="104" width="22" height="24" />
+            <rect class="d-bar" x="540" y="94" width="22" height="34" />
+            <rect class="d-bar" x="572" y="112" width="22" height="16" />
+            <rect class="d-hot" x="492" y="146" width="198" height="54" rx="5" />
+            <rect class="d-bar-hot" x="508" y="160" width="22" height="34" />
+            <rect class="d-bar-hot" x="540" y="176" width="22" height="18" />
+            <rect class="d-bar-hot" x="572" y="168" width="22" height="26" />
+            <rect class="d-chip" x="492" y="212" width="198" height="54" rx="5" />
+            <rect class="d-bar" x="508" y="238" width="22" height="22" />
+            <rect class="d-bar" x="540" y="228" width="22" height="32" />
+            <rect class="d-bar" x="572" y="244" width="22" height="16" />
+            <circle class="d-pin" cx="690" cy="146" r="7"><title>A comment pinned to #latency-chart</title></circle>
+            <line class="d-line" x1="697" y1="146" x2="724" y2="146" />
+            <rect class="d-hot" x="724" y="100" width="164" height="112" rx="8" />
+            <text class="d-mono" x="736" y="122">#latency-chart</text>
+            <text class="d-text" x="736" y="146">Two units on one axis.</text>
+            <text class="d-text" x="736" y="164">Split it into two.</text>
+            <text class="d-note" x="736" y="188">change request, on the</text>
+            <text class="d-note" x="736" y="202">version you saw</text>
+          </svg>
+          <figcaption>
+            The same remark, vague in chat and exact on the page. The pinned comment names its element and the version
+            it was written on.
+          </figcaption>
+        </figure>
+      </section>
+
+      <section id="loop">
+        <h2>The review loop</h2>
+        <p>
+          You and your agent take turns on the same page. Each comment goes to the agent with its target, and each edit
+          comes back as a reply on that comment.
+        </p>
+        <figure id="loop-figure">
+          <svg
+            viewBox="0 0 900 270"
+            role="img"
+            aria-label="Six steps in two rows: the agent writes a page, you comment on an element, the comment is saved with the element and your version, the agent learns which comments are new, edits only that part and replies, and you resolve or comment again."
+          >
+            <defs>
+              <marker
+                id="ah2"
+                viewBox="0 0 10 10"
+                refX="9"
+                refY="5"
+                markerWidth="7"
+                markerHeight="7"
+                orient="auto-start-reverse"
+              >
+                <path d="M0 0L10 5L0 10z" fill="currentColor" />
+              </marker>
+            </defs>
+            <g id="loop-step-1">
+              <rect class="d-box" x="10" y="20" width="240" height="78" rx="10" />
+              <text class="d-note" x="26" y="44">1 · AGENT</text>
+              <text class="d-strong" x="26" y="66">Writes an HTML page</text>
+              <text class="d-text" x="26" y="84">and validates it</text>
+            </g>
+            <g id="loop-step-2">
+              <rect class="d-hot" x="330" y="20" width="240" height="78" rx="10" />
+              <text class="d-note" x="346" y="44">2 · YOU</text>
+              <text class="d-strong" x="346" y="66">Click an element</text>
+              <text class="d-text" x="346" y="84">and write a comment</text>
+            </g>
+            <g id="loop-step-3">
+              <rect class="d-box" x="650" y="20" width="240" height="78" rx="10" />
+              <text class="d-note" x="666" y="44">3 · HTMI</text>
+              <text class="d-strong" x="666" y="66">Pins it to the element</text>
+              <text class="d-text" x="666" y="84">and the version you saw</text>
+            </g>
+            <g id="loop-step-4">
+              <rect class="d-box" x="650" y="172" width="240" height="78" rx="10" />
+              <text class="d-note" x="666" y="196">4 · AGENT</text>
+              <text class="d-strong" x="666" y="218">Learns which comments</text>
+              <text class="d-text" x="666" y="236">are new</text>
+            </g>
+            <g id="loop-step-5">
+              <rect class="d-box" x="330" y="172" width="240" height="78" rx="10" />
+              <text class="d-note" x="346" y="196">5 · AGENT</text>
+              <text class="d-strong" x="346" y="218">Edits only that part</text>
+              <text class="d-text" x="346" y="236">validates, and replies</text>
+            </g>
+            <g id="loop-step-6">
+              <rect class="d-hot" x="10" y="172" width="240" height="78" rx="10" />
+              <text class="d-note" x="26" y="196">6 · YOU</text>
+              <text class="d-strong" x="26" y="218">Resolve it,</text>
+              <text class="d-text" x="26" y="236">or comment again</text>
+            </g>
+            <path class="d-line" d="M250 59 H326" marker-end="url(#ah2)" />
+            <text class="d-note" x="262" y="51">you open it</text>
+            <path class="d-line" d="M570 59 H646" marker-end="url(#ah2)" />
+            <text class="d-note" x="590" y="51">saved</text>
+            <path class="d-line" d="M770 98 V168" marker-end="url(#ah2)" />
+            <text class="d-note" x="778" y="138">next turn</text>
+            <path class="d-line" d="M650 211 H574" marker-end="url(#ah2)" />
+            <text class="d-note" x="590" y="203">reads it</text>
+            <path class="d-line" d="M330 211 H254" marker-end="url(#ah2)" />
+            <text class="d-note" x="270" y="203">replies</text>
+            <path class="d-dash" d="M130 172 C130 132 330 135 420 101" marker-end="url(#ah2)" />
+            <text class="d-note" x="232" y="160">next round</text>
+          </svg>
+          <figcaption>
+            Steps 2 and 6 are yours. Agents reply and mark comments addressed; resolving is left to people.
+          </figcaption>
+        </figure>
+      </section>
+
+      <section id="after-an-edit">
+        <h2>What happens to a comment after an edit</h2>
+        <p>
+          A comment keeps its target's id, a digest of the target's content and the version you saw. When the page
+          changes, HTMi looks the target up again and reports one of five results. It never moves a comment to a guess:
+          a likely match is shown for a person to confirm, and agents have no tool to reattach a comment.
+        </p>
+        <figure id="anchor-figure">
+          <svg
+            viewBox="0 0 900 330"
+            role="img"
+            aria-label="A comment records its target id, a content digest and the version. After an edit HTMi looks the target up by id, then by content, and reports exact, changed, heuristic, ambiguous or orphaned."
+          >
+            <defs>
+              <marker
+                id="ah3"
+                viewBox="0 0 10 10"
+                refX="9"
+                refY="5"
+                markerWidth="7"
+                markerHeight="7"
+                orient="auto-start-reverse"
+              >
+                <path d="M0 0L10 5L0 10z" fill="currentColor" />
+              </marker>
+            </defs>
+            <g id="anchor-record">
+              <rect class="d-hot" x="10" y="104" width="220" height="122" rx="10" />
+              <text class="d-note" x="26" y="128">THE COMMENT KEEPS</text>
+              <text class="d-mono" x="26" y="152">#latency-chart</text>
+              <text class="d-text" x="26" y="174">a digest of its content</text>
+              <text class="d-text" x="26" y="196">the version you saw</text>
+            </g>
+            <path class="d-line" d="M230 165 H286" marker-end="url(#ah3)" />
+            <text class="d-note" x="240" y="156">edited</text>
+            <g id="anchor-lookup">
+              <rect class="d-box" x="290" y="114" width="200" height="102" rx="10" />
+              <text class="d-strong" x="306" y="140">HTMi looks it up</text>
+              <text class="d-text" x="306" y="162">by its id, then</text>
+              <text class="d-text" x="306" y="180">by its content</text>
+              <text class="d-note" x="306" y="202">nothing is chosen for you</text>
+            </g>
+            <path class="d-line" d="M490 150 C530 150 530 36 566 36" marker-end="url(#ah3)" />
+            <path class="d-line" d="M490 158 C535 158 535 101 566 101" marker-end="url(#ah3)" />
+            <path class="d-line" d="M490 165 H566" marker-end="url(#ah3)" />
+            <path class="d-line" d="M490 172 C535 172 535 229 566 229" marker-end="url(#ah3)" />
+            <path class="d-line" d="M490 180 C530 180 530 294 566 294" marker-end="url(#ah3)" />
+            <g id="state-exact">
+              <rect class="b-ok" x="570" y="20" width="90" height="32" rx="6" />
+              <text class="t-ok" x="582" y="41">exact</text>
+              <text class="d-text" x="672" y="41">Same element, unchanged</text>
+              <title>exact: the target is present and unchanged</title>
+            </g>
+            <g id="state-changed">
+              <rect class="b-warn" x="570" y="85" width="90" height="32" rx="6" />
+              <text class="t-warn" x="582" y="106">changed</text>
+              <text class="d-text" x="672" y="106">Same element, new content</text>
+              <title>changed: same identity, different content since the comment</title>
+            </g>
+            <g id="state-heuristic">
+              <rect class="b-warn" x="570" y="149" width="90" height="32" rx="6" />
+              <text class="t-warn" x="582" y="170">heuristic</text>
+              <text class="d-text" x="672" y="170">A likely match, for you to confirm</text>
+              <title>heuristic: a likely candidate exists but identity was not kept</title>
+            </g>
+            <g id="state-ambiguous">
+              <rect class="b-warn" x="570" y="213" width="90" height="32" rx="6" />
+              <text class="t-warn" x="582" y="234">ambiguous</text>
+              <text class="d-text" x="672" y="234">Several matches, none picked</text>
+              <title>ambiguous: several candidates, none is chosen</title>
+            </g>
+            <g id="state-orphaned">
+              <rect class="b-risk" x="570" y="278" width="90" height="32" rx="6" />
+              <text class="t-risk" x="582" y="299">orphaned</text>
+              <text class="d-text" x="672" y="299">Gone; the comment keeps</text>
+              <text class="d-note" x="672" y="315">its original version</text>
+              <title>orphaned: the target is gone; the comment and its original version remain</title>
+            </g>
+          </svg>
+          <figcaption>
+            Every result is shown on the comment, in words. A spatial note on an image region is kept as a snapshot of
+            the version it was drawn on.
+          </figcaption>
+        </figure>
+      </section>
+
+      <section id="agent">
+        <h2>What your agent gets, and what it may do</h2>
+        <div class="two">
+          <div class="panel" id="agent-context">
+            <h3>One comment, with its context</h3>
+            <ul>
+              <li>the target and its neighbours</li>
+              <li>constraints the page declares</li>
+              <li>the prose around it</li>
+              <li>the thread, word for word</li>
+              <li>what the source does not say</li>
+              <li>what was left out, with the command to fetch it</li>
+            </ul>
+          </div>
+          <div class="panel" id="agent-limits">
+            <h3>Checked edits, and limits</h3>
+            <ul>
+              <li>
+                An edit names its target and the content it expects there. If that content changed, nothing is written.
+              </li>
+              <li>If anything outside the target would change, the edit is refused.</li>
+              <li>Comment text reaches the agent as data, never as instructions.</li>
+              <li>Agents reply and mark comments addressed. Resolving and reattaching are left to people.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section id="where">
+        <h2>Where it runs</h2>
+        <p>
+          The same comments and the same checked edits, in the tools you already use. Documents can be HTML pages,
+          Markdown with Mermaid diagrams, or GitHub issue and pull request descriptions.
+        </p>
+        <div class="scroll">
+          <table id="where-table">
+            <thead>
+              <tr>
+                <th>Where</th>
+                <th>What you get</th>
+                <th>Install</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr id="where-hermes">
+                <td>Hermes Agent</td>
+                <td>
+                  A plugin: 11 tools, a Review tab in the dashboard, a notice when there are new comments, and your
+                  approval before it creates an issue or changes a description
+                </td>
+                <td><code>hermes plugins install htmi --enable</code></td>
+              </tr>
+              <tr id="where-mcp">
+                <td>Claude Code, Codex</td>
+                <td>
+                  The MCP server, plus <code>htmi serve</code> for the review page; works with any agent that speaks MCP
+                </td>
+                <td><code>htmi mcp</code>, set up as in the README</td>
+              </tr>
+              <tr id="where-github">
+                <td>GitHub, in Chrome</td>
+                <td>
+                  HTML files, issue and pull request descriptions, and Files changed shown as the page; comments go into
+                  GitHub's own comment box
+                </td>
+                <td>
+                  <a href="https://chromewebstore.google.com/detail/htmi/gnoobljmbffiofigfkfljgihbnkomhaa"
+                    >Chrome Web Store</a
+                  >
+                </td>
+              </tr>
+              <tr id="where-vscode">
+                <td>VS Code</td>
+                <td>The review page beside the source</td>
+                <td>In <code>vscode/</code>; Marketplace release coming</td>
+              </tr>
+              <tr id="where-cli">
+                <td>Terminal</td>
+                <td>
+                  Every step as a command: <code>htmi read</code>, <code>htmi context</code>, <code>htmi apply</code>,
+                  <code>htmi github pull</code>
+                </td>
+                <td><code>npm link</code> from a clone</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="your-computer">
+        <h2>What it does on your computer</h2>
+        <ul id="your-computer-list">
+          <li>
+            No account, no server, no telemetry. Comments are a file in your repository
+            (<code>.htmi/annotations.jsonl</code>) or ordinary GitHub comments.
+          </li>
+          <li>It reads and writes only inside the repository; a path or symbolic link that leads out is refused.</li>
+          <li>
+            GitHub work goes through your own <code>gh</code> login. The Chrome extension posts nothing itself: you
+            press Comment.
+          </li>
+        </ul>
+      </section>
+
+      <section id="comment-here">
+        <h2>Comment on this page</h2>
+        <div class="invite" id="invite">
+          <p>
+            This page is an HTMi document. If you are reading it on GitHub with the HTMi extension, click any part of
+            it, a figure, a table row or a sentence, and write what you think.
+          </p>
+          <p>
+            Then type an issue number under the preview and choose <b>Open it with the comments</b>. Your comment lands
+            in that issue's comment box, pinned to what you clicked, and nothing is posted until you press Comment.
+          </p>
+        </div>
+        <p class="small" id="no-extension">
+          Without the extension, GitHub shows this file as HTML source; the README has a picture of it.
+        </p>
+      </section>
+
+      <footer id="footer">
+        <p class="small">
+          <a href="https://github.com/Thamirawaran/htmi">github.com/Thamirawaran/htmi</a> · MIT license
+        </p>
+      </footer>
+    </main>
+  </body>
+</html>
