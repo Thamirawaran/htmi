@@ -38,24 +38,23 @@ the repository.
 **Hermes Agent**
 
 ```sh
-hermes plugins install Thamirawaran/htmi/hermes --enable
+hermes plugins install htmi --enable
 ```
 
-If Hermes is already running, restart it once with `hermes gateway restart`. Then ask
-Hermes for a page to review. Remove it with `hermes plugins remove htmi`. It needs Hermes
-0.23 or newer and git; Hermes provides Node. On GitHub it works only in the repository's
-own origin unless you list other repositories, and Hermes asks you before it creates an
-issue or changes a description.
+HTMi is in the
+[Hermes plugin catalog](https://hermes-agent.nousresearch.com/docs/plugins/htmi). If
+Hermes is already running, restart it once with `hermes gateway restart`. Then ask Hermes
+for a page to review. Remove it with `hermes plugins remove htmi`. It needs Hermes 0.23 or
+newer and git; Hermes provides Node. On GitHub it works only in the repository's own
+origin unless you list other repositories, and Hermes asks you before it creates an issue
+or changes a description.
 
 **Chrome, for GitHub**
 
-1. Download `htmi-chrome-0.1.0.zip` from the
-   [latest release](https://github.com/Thamirawaran/htmi/releases/latest) and unzip it.
-2. Open `chrome://extensions` and turn on **Developer mode**.
-3. Choose **Load unpacked** and pick the unzipped folder.
-
+Add
+[HTMi from the Chrome Web Store](https://chromewebstore.google.com/detail/htmi/gnoobljmbffiofigfkfljgihbnkomhaa).
 It runs only on github.com, its only other permission is storage, and it posts nothing
-itself. Remove it with **Remove** on the same page.
+itself. Remove it from `chrome://extensions`.
 
 **Claude Code, Codex and other agents**
 

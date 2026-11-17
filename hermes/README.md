@@ -32,7 +32,7 @@ comment survives the edit, or says plainly that its target changed or is gone.
 1. Install and enable the plugin, then start Hermes in a git repository:
 
    ```sh
-   hermes plugins install Thamirawaran/htmi/hermes --enable
+   hermes plugins install htmi --enable
    hermes gateway restart   # only if a gateway is already running, so it loads the plugin
    ```
 
@@ -47,10 +47,8 @@ comment survives the edit, or says plainly that its target changed or is gone.
 Comments live in `.htmi/annotations.jsonl` in your repository, next to the documents,
 so they travel with the repository through git.
 
-To see pages and comment on GitHub, add the HTMi Chrome extension: download
-`htmi-chrome-0.1.0.zip` from the
-[latest release](https://github.com/Thamirawaran/htmi/releases/latest), unzip it, and in
-`chrome://extensions` turn on Developer mode and choose Load unpacked.
+To see pages and comment on GitHub, add
+[HTMi from the Chrome Web Store](https://chromewebstore.google.com/detail/htmi/gnoobljmbffiofigfkfljgihbnkomhaa).
 
 Remove the plugin with `hermes plugins remove htmi`. Your documents and `.htmi/` stay.
 

@@ -297,8 +297,8 @@ concurrent writers beyond the checks described in ARCHITECTURE.md.
   reloads; a comment being written at that moment is lost.
 - A pull request's description reaches the extension only for people who can
   edit it (GitHub puts it in the edit form); issue descriptions reach every reader.
-- Google Chrome loads the extension through "Load unpacked"; it does not accept
-  `--load-extension` from the command line since version 137.
+- Google Chrome 137 and later ignore `--load-extension`; to run a build of your own,
+  use Load unpacked in `chrome://extensions`.
 - A description's live review page does not follow edits made on GitHub; saving
   a comment after such an edit is refused until the page is reloaded.
 
